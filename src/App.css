@@ -1,38 +1,127 @@
-.App {
-  text-align: center;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'react-datepicker/dist/react-datepicker.css';
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.cdnfonts.com/css/netflix-font');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Rubik:ital,wght@0,800;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Outfit:wght@100..900&family=Rubik:ital,wght@0,900;1,900&display=swap');
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+input:focus {
+  outline: none;
+}
+body {
+  position: relative;
+background-color: #000000;
+}
+.add-scrollbar::-webkit-scrollbar {
+  width: 12px;
+  -webkit-transition: .5s ease;
+  transition: .5s ease;
+}
+.add-scrollbar::-webkit-scrollbar-thumb {
+  background: hsla(0, 0%, 100%, .1);
+  border-radius: 8px;
+  width: 12px;
+}
+.add-scrollbar::-webkit-scrollbar-track {
+  border-radius: 8px;
+  width: 12px;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.hide-scrollbar {
+  scrollbar-width: none; 
+}
+.custom-shadow-short::before,
+.custom-shadow-short::after {
+  content: '';
+    position: absolute;
+    height: 83.5%;
+    top: 4.5%;
+    background: rgb(255 255 255);
+    box-shadow: 0px 0px 26px 4px rgb(157 166 178 / 80%);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.custom-shadow-short::before {
+  left: -1px; 
+}
+
+.custom-shadow-short::after {
+  right: -6px; 
+}
+.custom-delay {
+  transition: opacity 500ms ease-in-out; 
+  transition-delay: 1000ms; 
+}
+
+.group:hover .custom-delay {
+  transition-delay: 0ms; 
+}
+
+.effect.animate {
+  animation: effect-animation 1s forwards;
+}
+
+@keyframes effect-animation {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
   }
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.blur-layer-1{
+  height: 504px;
+  border-radius: 771px;
+  opacity: .5;
+  background: linear-gradient(180deg, #00ffd5 -16.8%, #0b5b47 117.58%);
+}
+.blur-layer-2 {
+  height: 847px;
+  border-radius: 847px;
+  opacity: .2;
+  background-color: #fff;
+}
+.blur-layer-1, .blur-layer-2 {
+  width: min(771px, 50%);
+  flex-shrink: 0;
+  filter: blur(170px);
 }
 
-.App-link {
-  color: #61dafb;
+
+.react-datepicker {
+  background: linear-gradient(180deg, #00cec8 0%, #a8e6cf 100%)!important; 
+  color: #fff !important;      
+  border-radius: 15px !important;
+  overflow: hidden;     
+} 
+.react-datepicker__year-read-view--down-arrow, .react-datepicker__month-read-view--down-arrow, .react-datepicker__month-year-read-view--down-arrow, .react-datepicker__navigation-icon::before {
+border-color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+
+.react-datepicker__header {
+  background: linear-gradient(90deg, #00cec8 0%, #a8e6cf 100%)!important; 
+  color: white !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: white !important; 
+  color: black !important;               
+}
+
+.react-datepicker__day {
+  &:hover {
+    background-color: #ffffff; 
   }
-  to {
-    transform: rotate(360deg);
-  }
+}
+.react-datepicker__triangle path {
+  display: none;
 }

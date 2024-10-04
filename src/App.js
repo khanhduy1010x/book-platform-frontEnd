@@ -9,6 +9,7 @@ import { Routes, Route } from "react-router-dom";
 import Search from "./component/Search/Search";
 import ListByTypePage from "./component/TypeBookPage/ListByTypePage";
 import InfoPage from "./component/Infomation/InfoPage";
+import Chat from "./component/Chat/Chat";
 function App() {
   return (
     <>
@@ -24,7 +25,7 @@ function App() {
         <Route path="/type" element={<ListByTypePage/>}/>
         <Route path="/info" element={<InfoPage/>} />
 
-
+        <Route path="/chat" element={<Chat/>} />
       </Routes>
       <Footer />
     </>

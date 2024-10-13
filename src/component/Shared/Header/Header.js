@@ -9,6 +9,8 @@ import NotificationDialog from "./NotificationDialog";
 import Oyster from "../../../assets/image/oyter.png";
 import { Link } from "react-router-dom";
 import { useAPI } from "../../Service/APIContext";
+import AvatarComponent from "../Helper/AvatarComponent";
+import CreatePasswordDialog from "./CreatePasswordDialog";
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchInput, setSearchInput] = useState(false);
@@ -69,7 +71,7 @@ export default function Header() {
               <OtpInput setModalStatus={setModalStatus} />
             ) : modalStatus === "login" ? (
               <LoginDialog setModalStatus={setModalStatus} />
-            ) : (
+            ) : modalStatus === "createPassword" ? (<CreatePasswordDialog/>) : (
               //  Dang ki -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
               <RegisterDialog setModalStatus={setModalStatus} />
             )}
@@ -228,16 +230,13 @@ export default function Header() {
                 ) : (
                   <>
                     <div className="w-[42px] h-[42px] rounded-full min-w-[42px] overflow-hidden  border-white border-[1px] ">
-                      <img
-                        className="w-full h-full object-cover cursor-pointer"
-                        src="https://parcsaintecroix.com/wp-content/uploads/2024/02/MG_3383-scaled.jpg"
-                      />
+                      <AvatarComponent avatar={userInfo.avatar} css={"w-full h-full object-cover cursor-pointer"}/>
                     </div>
                     <i className="fa-duotone fa-solid fa-caret-down absolute right-1 text-white text-[18px]"></i>
-                    <div className="!bg-background-book after:content-['']  after:w-100 after:h-[40px] after:-top-5 after:absolute after:left-[75%] after:right-0 ease-in-out invisible opacity-0 group-hover:opacity-100 group-hover:visible transition-opacity duration-500  absolute w-[300px] right-0 top-[110%] !backdrop-blur rounded-xl px-[16px] py-[8px] text-center">
+                    <div className="!bg-background-book after:content-[''] min-w-100  after:w-100 after:h-[40px] after:-top-5 after:absolute after:left-[75%] after:right-0 ease-in-out invisible opacity-0 group-hover:opacity-100 group-hover:visible transition-opacity duration-500  absolute w-[300px] right-0 top-[110%] !backdrop-blur rounded-xl px-[16px] py-[8px] text-center">
                       <div className="flex justify-center items-center ">
                         <div className="text-center">
-                          <h2 className="text-white text-[22px] font-bold">
+                          <h2 className="text-white text-[16px] w-100 pb-2 font-bold ">
                             {userInfo?.fullName}
                           </h2>
                           <div className="flex justify-around">
@@ -253,11 +252,9 @@ export default function Header() {
                             </div>
                           </div>
                         </div>
-                        <div className="w-[50px] ml-3 h-[50px] rounded-full overflow-hidden">
-                          <img
-                            className="object-cover"
-                            src="https://upload.wikimedia.org/wikipedia/commons/1/1e/Default-avatar.jpg"
-                          />
+                        <div className="w-[45px] ml-3 h-[45px] rounded-full overflow-hidden">
+                        <AvatarComponent avatar={userInfo.avatar} css={"w-full h-full object-cover"}/>
+
                         </div>
                       </div>
                       <div className="mt-3 px-5">

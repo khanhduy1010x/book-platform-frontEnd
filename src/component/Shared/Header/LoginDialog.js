@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAPI } from "../../Service/APIContext";
 export default function LoginDialog({ setModalStatus}) {
-  const {success,loginRequest, error} = useAPI();
+  const {success,loginRequest,responseFacebook, error, googleLogin} = useAPI();
   const [loginPhone, setLoginPhone] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [eyeShowPW, setEyeShowPW] = useState(false);
-  
+  const facebookRef = useRef();
   const handleLoginSubmit = () => {
     loginRequest(loginPhone,loginPassword);
   }
@@ -96,16 +96,10 @@ export default function LoginDialog({ setModalStatus}) {
                     </button>
                   </div>
                   <p className="text-sm-15-19 mt-6">Hoặc đăng nhập với</p>
-                  <div className="bg-[#37373a] py-3 text-white-50 mt-6 rounded-full px-8 flex items-center justify-center cursor-pointer button-social">
-                    <img
-                      src="https://waka.vn/svgs/icon-facebook.svg"
-                      className="cursor-pointer"
-                    ></img>
-                    <span className="text-base-16-19 text-white-50 ml-2">
-                      Facebook
-                    </span>
-                  </div>
-                  <div className="bg-[#37373a] py-3 text-white-50 rounded-full mt-2 px-8 mb-4 flex items-center justify-center cursor-pointer button-social">
+  
+                  <div className="bg-[#37373a] py-3 text-white-50 rounded-full mt-2 px-8 mb-4 flex items-center justify-center cursor-pointer button-social"
+                  onClick={googleLogin} 
+                  >
                     <img
                       src="https://waka.vn/svgs/icon-google.svg"
                       className="cursor-pointer"

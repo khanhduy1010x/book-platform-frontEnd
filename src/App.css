@@ -125,3 +125,6 @@ border-color: white;
 .react-datepicker__triangle path {
   display: none;
 }
+.hover-red-color:hover {
+  color:red;
+}

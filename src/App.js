@@ -10,6 +10,7 @@ import Search from "./component/Search/Search";
 import ListByTypePage from "./component/TypeBookPage/ListByTypePage";
 import InfoPage from "./component/Infomation/InfoPage";
 import Chat from "./component/Chat/Chat";
+import Social from "./component/Social/Social";
 function App() {
   return (
     <>
@@ -26,6 +27,7 @@ function App() {
         <Route path="/info" element={<InfoPage/>} />
 
         <Route path="/chat" element={<Chat/>} />
+        <Route path="/social" element={<Social/>} />
       </Routes>
       <Footer />
     </>

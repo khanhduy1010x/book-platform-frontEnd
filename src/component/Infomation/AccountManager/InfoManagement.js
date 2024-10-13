@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-
+import { useAPI } from "../../Service/APIContext";
 import UserInfo from "./UserInfo";
 import AccountSecurity from "./AccountSecurity";
 import SocialConnect from "./SocialConnect";
 
 export default function InfoManagement() {
+  const { userInfo, isLogin } = useAPI();
+  const [infoUser, setInfoUser] = useState("");
+  useEffect(() => {
+    if (isLogin) setInfoUser(userInfo);
+  }, [isLogin]);
   const taskbarManagements = [
     { label: "Thông tin cá nhân" },
     { label: "Tài khoản và bảo mật" },
@@ -41,9 +46,9 @@ export default function InfoManagement() {
               </div>
             </div>
             <div className="">
-              {isLabelFocus === "Thông tin cá nhân" && <UserInfo />}
-              {isLabelFocus === "Tài khoản và bảo mật" && <AccountSecurity />}
-              {isLabelFocus === "Tài khoản liên kết" && <SocialConnect />}
+              {isLabelFocus === "Thông tin cá nhân" && <UserInfo infoUser={infoUser} />}
+              {isLabelFocus === "Tài khoản và bảo mật" && <AccountSecurity infoUser={infoUser} />}
+              {isLabelFocus === "Tài khoản liên kết" && <SocialConnect infoUser={infoUser}/>}
 
             </div>
           </div>

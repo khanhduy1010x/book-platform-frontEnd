@@ -2,8 +2,13 @@ import Oyster from "../../assets/image/oyter.png";
 import Fish from "../../assets/image/fishicon.png";
 import Button from "../Shared/Button/Button";
 import { useEffect, useState } from "react";
-
+import { useAPI } from "../Service/APIContext";
 export default function SliderBar({isSelectBar, setIsSelectBar}) {
+  const { userInfo, isLogin } = useAPI();
+  const [infoUser, setInfoUser] = useState("");
+  useEffect(() => {
+    if (isLogin) setInfoUser(userInfo);
+  }, [isLogin]);
   useEffect(() => {
     setIsSelectBar("Quản lí thông tin");
   },[])
@@ -22,7 +27,7 @@ export default function SliderBar({isSelectBar, setIsSelectBar}) {
     <div className="inline-block">
       <div className="flex">
         <div className="text-white  mr-3">
-          <h2 className="text-[24px] font-bold font-rubik">Nguyễn Khánh Duy</h2>
+          <h2 className="text-[24px] font-bold font-rubik">{infoUser.fullName}</h2>
           <div className="flex items-center">
             <div className="flex items-center">
               <div className="w-[20px] h-[20px] mt-[2px] flex">
@@ -30,7 +35,7 @@ export default function SliderBar({isSelectBar, setIsSelectBar}) {
               </div>
               <div className="mb-[-3px]">
                 <span className="text font-bold text-primary font-rubik ml-2">
-                  999.999đ
+                {infoUser.amount}đ
                 </span>
               </div>
             </div>
@@ -40,7 +45,7 @@ export default function SliderBar({isSelectBar, setIsSelectBar}) {
               </div>
               <div className="mb-[-3px]">
                 <span className="text font-bold text-primary font-rubik ml-2">
-                  999.999đ
+                {infoUser.amount}đ
                 </span>
               </div>
             </div>

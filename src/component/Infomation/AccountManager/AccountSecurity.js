@@ -1,10 +1,10 @@
-export default function AccountSecurity() {
+export default function AccountSecurity({infoUser}) {
     return (
       <div className="mt-6">
         <div className="border-b border-gray-500 pb-2">
         <div className="flex relative">
               <input
-              defaultValue={"nguyenkhanhduy92000@gmail.com"}
+              defaultValue={"maill"}
                 readOnly
                 className="px-4 pb-2 border pt-5 flex-1 border-gray-300 rounded-xl  bg-[#2a2a2c] text-gray-300"
               />
@@ -17,7 +17,7 @@ export default function AccountSecurity() {
             <div className="border-b border-gray-500 pb-2">
         <div className="flex relative mt-4">
               <input
-              defaultValue={"0848150667"}
+              defaultValue={infoUser.phone}
                 readOnly
                 className="px-4 pb-2 border pt-5 flex-1 border-gray-300 rounded-xl  bg-[#2a2a2c] text-gray-300"
               />

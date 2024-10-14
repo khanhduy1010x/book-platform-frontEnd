@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { setToken, getToken, setUser,removeToken, removeUser, getUser } from "./LocalStorage";
+import { useGoogleLogin } from '@react-oauth/google';  
+
 const APIContext = createContext();
 
 export function useAPI() {
@@ -27,7 +29,10 @@ export function ContextAPI({ children }) {
   const [success, setSuccess] = useState({});
   const [isLogin, setIsLogin] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [created, setCreated] = useState(false);
+  const [isSkipPasswordPrompt, setIsSkipPasswordPrompt] = useState(false);
   const [modalStatus, setModalStatus] = useState("");
+  console.log(getToken())
   const [accountCreatRequest, setAccountCreateRequest] = useState({
     phone: "",
     password: "",
@@ -140,7 +145,7 @@ const refreshToken = () => {
         return response.json();
       })
       .then((data) => {
-        if (data.code != null) {
+        if (data.code !== null) {
           removeToken();
           removeUser();
           setIsLogin(false);
@@ -155,7 +160,7 @@ const refreshToken = () => {
       });
   };
   /// Lay thong tin user
-  const getInfoUser = (token) => {
+  const getInfoUser = (token, googleLogin = false) => {
     fetch(`${BASE_URL}/auth/my-info`, {
       method: "GET",
       headers: {
@@ -168,10 +173,16 @@ const refreshToken = () => {
       .then((data) => {
         if (data.code === 1000) {
           setUser(data?.result);
+          if(!data.result.hasPassword && googleLogin) {
+            if(!data.result.skip_password_prompt){
+              setShowModal(true);
+              setModalStatus("createPassword");
+            }
+          }
           setUserInfo(getUser());
           setIsLogin(true);
         }
-        if (data.code !== 1000) {
+        if (data.code !==1000) {
         }
       })
       .catch((e) => {});
@@ -184,7 +195,7 @@ const refreshToken = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        phone: phone,
+        phoneOrMail: phone,
         password: password,
       }),
     })
@@ -197,8 +208,8 @@ const refreshToken = () => {
           getInfoUser(data?.result.token);
           setShowModal(false);
         }
-        if (data.code != 1000) {
-          /// Code != 1000 -> sai tai khoan or password
+        if (data.code !== 1000) {
+          /// Code !== 1000 -> sai tai khoan or password
           setError({
             ...error,
             failLogin: true,
@@ -231,7 +242,7 @@ const refreshToken = () => {
         return response.json();
       })
       .then((data) => {
-        if (data.code !== 1000) {
+        if (data.code !==1000) {
           setError({
             ...error,
             otpError: data.message,
@@ -314,7 +325,92 @@ const refreshToken = () => {
         });
       });
   };
+  ///// Login bang google 
+  const googleLogin = useGoogleLogin({
+    onSuccess: response => {
+      const token = response.access_token; 
+      fetch(`${BASE_URL}/auth/verify-google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token : token
+        }),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          if (data.code === 1000) {
+            setToken(data?.result.token);
+            getInfoUser(data?.result.token, true);
+          }
+          if (data.code !== 1000) {
+            /// Code !== 1000 -> sai tai khoan or password
+            setError({
+              ...error,
+              failLogin: true,
+            });
+          }
+        })
+        .catch((e) => {
+          setError({
+            ...error,
+            failLogin: true,
+          });
+        });
+    },
+    onError: () => {
+      console.error('Login with Google failed');
+    },
+  });
+
+  const createPassword = (password) => {
+    const token = getToken();
+    fetch(`${BASE_URL}/auth/create-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization : `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        password: password
+      }),
+    }).then((response) => {
+      return response.json();
+    }).then((data) => {
+      if(data.code === 1000) {
+        setCreated(true);
+      }
+    })
+  }
+  const skipPasswordPrompt = () => {
+    const token = getToken();
+    fetch(`${BASE_URL}/account/set-password-prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization : `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        skip: true
+      }),
+    }).then((response) => {
+      return response.json()
+    }).then((data) => {
+      if (data.code === 1000) {
+        console.log("Chang prompt isOK");
+      }
+    }).catch((error) => {
+      console.log("Error chang prompt password", error)
+    })
+  }
+  ////Dang nhap bang facbook 
+ 
   const value = {
+    skipPasswordPrompt,
+    createPassword,
     sendSMSOTPReg,
     error,
     setError,
@@ -330,7 +426,9 @@ const refreshToken = () => {
     showModal,
     userInfo,
     setShowModal,
-    isLogin
+    isLogin,
+    googleLogin,
+    created
   };
 
   return <APIContext.Provider value={value}>{children}</APIContext.Provider>;

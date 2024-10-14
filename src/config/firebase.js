@@ -19,5 +19,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const database = getDatabase(app);
-export{database,ref,push, onValue,get,update,set,remove}
+export{database, ref,get,update, push ,onValue, remove,set}
+
 export const storage = getStorage(app);

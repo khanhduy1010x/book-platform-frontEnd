@@ -150,6 +150,12 @@ export default function Header() {
                 >
                   Mini Game
                 </a>
+                <Link
+                  to="/social"
+                  className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
+                >
+                  Mạng Xã Hội
+                </Link>
               </div>
             </div>
 

@@ -335,15 +335,7 @@ export default function RegisterDialog({ setModalStatus }) {
           </button>
           <p className="mt-6 text-white text-sm">Hoặc đăng kí với </p>
           <div className="flex justify-around mt-4 py-4">
-            <div className="bg-[#37373a]  text-white rounded-full h-[52px] px-6 flex items-center justify-center cursor-pointer button-social">
-              <img
-                src="https://waka.vn/svgs/icon-facebook.svg"
-                className="cursor-pointer"
-              ></img>
-              <span className="text-base-16-19 text-white-50 ml-2">
-                Facebook
-              </span>
-            </div>
+         
             <div className="bg-[#37373a] py-3 text-white-50 rounded-full  h-[52px] px-8 flex items-center justify-center cursor-pointer button-social">
               <img
                 src="https://waka.vn/svgs/icon-google.svg"

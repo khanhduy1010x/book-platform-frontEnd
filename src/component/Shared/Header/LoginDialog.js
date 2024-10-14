@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useAPI } from "../../Service/APIContext";
-import FacebookLogin from 'react-facebook-login';
 export default function LoginDialog({ setModalStatus}) {
   const {success,loginRequest,responseFacebook, error,setShowModal, googleLogin} = useAPI();
   const [loginPhone, setLoginPhone] = useState("");

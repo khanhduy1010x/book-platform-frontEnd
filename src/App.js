@@ -15,7 +15,6 @@ function App() {
       <Zalo />
       <ChatWeb />
       <div className="z-[9999] relative">
-        <h1>123</h1>
         <Header />
       </div>
       <Routes>

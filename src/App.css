@@ -128,3 +128,9 @@ border-color: white;
 .hover-red-color:hover {
   color:red;
 }
+.chat-window {
+  height: 500px; /* Hoặc bất kỳ chiều cao nào bạn muốn */
+  max-height: 500px; /* Đảm bảo khung không vượt quá chiều cao này */
+  overflow-y: auto;
+}
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   database,
   ref,
@@ -18,6 +18,8 @@ export default function Chat() {
   const [users, setUsers] = useState([2, 3]); // Mock user list for demo. You can replace this with actual user data.
   const [chatUsers, setChatUsers] = useState([]); // State to store users who have already chatted
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({}); // Track unread messages count for each user
+  const messagesEndRef = useRef(null); // Ref cho phần tử cuối của danh sách tin nhắn
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   // Fetch users who have already chatted from Firebase
   useEffect(() => {
@@ -34,6 +36,19 @@ export default function Chat() {
       setChatUsers(userChat.reverse());
     });
   }, []);
+  // Cuộn xuống cuối của phần tin nhắn
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+  //   }
+  // }, [message]);
+
+  useEffect(() => {
+    const chatWindow = document.querySelector(".chat-window");
+    if (chatWindow) {
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+  }, [message]);
 
   // Fetch messages from Firebase
   useEffect(() => {
@@ -66,7 +81,7 @@ export default function Chat() {
     const unreadMessages = message.filter(
       (msg) =>
         msg.chatMessage?.to === userInfo?.accID &&
-        msg.chatMessage?.user?.accID === chatUserAccID &&
+        // msg.chatMessage?.user?.accID === chatUserAccID && dell ra da xem
         !msg.chatMessage?.isRead
     );
 
@@ -127,44 +142,64 @@ export default function Chat() {
 
   return (
     <div className="pt-24 min-h-screen bg-gray-100">
+      {userInfo?.role === "ADMIN" && (
+        <button
+          className="mr-4 px-2 py-1 bg-gray-300 rounded-md"
+          onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+        >
+          {isSidebarVisible ? "Hide" : "Show"} Users
+        </button>
+      )}
       <div className="container mx-auto p-4 flex">
         {/* Left Sidebar for user list */}
         {userInfo?.role === "ADMIN" && (
-          <div className="w-1/4 bg-gray-200 p-4 rounded-lg shadow-lg">
+          <div
+            className={`w-1/4 bg-gray-200 p-4 rounded-lg shadow-lg ${
+              isSidebarVisible ? "" : "hidden"
+            }`}
+          >
             <h2 className="text-xl font-bold text-gray-700 mb-4">Users</h2>
             <div className="space-y-2 overflow-y-auto h-96">
-              {chatUsers.map((chatUser) => (
-                <div key={chatUser.userInfo.accID} className="relative">
-                  <div
-                    className={`p-2 cursor-pointer rounded-md flex justify-between items-center ${
-                      to === chatUser.userInfo.accID
-                        ? "bg-blue-400 text-white"
-                        : "bg-gray-100"
-                    }`}
-                    onClick={() => {
-                      setTo(chatUser.userInfo.accID);
-                      markMessagesAsRead(chatUser.userInfo.accID); // Mark messages as read on user click
-                    }}
-                  >
-                    <span>
-                      User {chatUser.userInfo.accID}:{" "}
-                      {chatUser.userInfo.fullName}
-                    </span>
-                    {/* Display unread messages count */}
-                    {unreadMessagesCount[chatUser.userInfo.accID] > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        {unreadMessagesCount[chatUser.userInfo.accID]}
+              {chatUsers
+                .filter((chatUser) => chatUser.userInfo?.role !== "ADMIN")
+                .map((chatUser) => (
+                  <div key={chatUser.userInfo.accID} className="relative">
+                    <div
+                      className={`p-2 cursor-pointer rounded-md flex justify-between items-center ${
+                        to === chatUser.userInfo.accID
+                          ? "bg-blue-400 text-white"
+                          : "bg-gray-100"
+                      }`}
+                      onClick={() => {
+                        setTo(chatUser.userInfo.accID);
+                        markMessagesAsRead(chatUser.userInfo.accID); // Mark messages as read on user click
+                      }}
+                    >
+                      <span>
+                        User {chatUser.userInfo.accID}:{" "}
+                        {chatUser.userInfo.fullName}
                       </span>
-                    )}
+                      {/* Display unread messages count */}
+                      {unreadMessagesCount[chatUser.userInfo.accID] > 0 && (
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                          {unreadMessagesCount[chatUser.userInfo.accID]}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
 
         {/* Chat Window */}
-        <div className="w-3/4 ml-4">
+        <div
+          className={`flex-grow transition-all duration-300 ${
+            isSidebarVisible ? "ml-4" : ""
+          }`}
+        >
+          {/* <div className={`${isSidebarVisible ? "w-3/4 ml-4" : "w-full"}`}> */}
+
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-700">
@@ -203,13 +238,15 @@ export default function Chat() {
                       {index === filterms.length - 1 &&
                         item?.chatMessage?.user?.accID === userInfo?.accID && (
                           <p className="text-xs text-green-600">
-                            {item?.chatMessage?.isRead ? "Đã xem" : "Chưa xem"}
+                            {item?.chatMessage?.isRead ? "Đã xem" : "Đã gửi"}
                           </p>
                         )}
                     </div>
                   </div>
                 ))
               )}
+              {/* Div dùng để cuộn tới cuối của tin nhắn */}
+              <div ref={messagesEndRef} />
             </div>
 
             <div className="mt-4 flex">
@@ -229,7 +266,7 @@ export default function Chat() {
                 className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 onClick={handleSendMessage}
               >
-                Send
+                <i class="fa-sharp-duotone fa-solid fa-paper-plane-top"></i>
               </button>
             </div>
           </div>

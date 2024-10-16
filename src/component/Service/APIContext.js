@@ -28,10 +28,10 @@ export function ContextAPI({ children }) {
   const [userInfo, setUserInfo] = useState(null);
   const [success, setSuccess] = useState({});
   const [isLogin, setIsLogin] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(true);
   const [created, setCreated] = useState(false);
   const [isSkipPasswordPrompt, setIsSkipPasswordPrompt] = useState(false);
-  const [modalStatus, setModalStatus] = useState("");
+  const [modalStatus, setModalStatus] = useState("forgotPassword");
   console.log(getToken())
   const [accountCreatRequest, setAccountCreateRequest] = useState({
     phone: "",

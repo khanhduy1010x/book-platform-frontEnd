@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { useAPI } from "../../Service/APIContext";
 import AvatarComponent from "../Helper/AvatarComponent";
 import CreatePasswordDialog from "./CreatePasswordDialog";
+import ForgotPassword from "./ForgotPassword";
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchInput, setSearchInput] = useState(false);
@@ -71,7 +72,9 @@ export default function Header() {
               <OtpInput setModalStatus={setModalStatus} />
             ) : modalStatus === "login" ? (
               <LoginDialog setModalStatus={setModalStatus} />
-            ) : modalStatus === "createPassword" ? (<CreatePasswordDialog/>) : (
+            ) : modalStatus === "createPassword" ? (<CreatePasswordDialog/>) :
+              modalStatus === "forgotPassword" ? (<ForgotPassword/> ) :
+            (
               //  Dang ki -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
               <RegisterDialog setModalStatus={setModalStatus} />
             )}

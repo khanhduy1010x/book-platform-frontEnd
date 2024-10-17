@@ -25,7 +25,6 @@ export default function LoginDialog({ setModalStatus}) {
                   <h3 className="text-base-16-19 text-white-50">
                     Đăng nhập để nhận thêm quyền lợi
                   </h3>
-
                   {
                     error.failLogin && (
                       <p className="text-red-500">Tài khoản hoặc số điện thoại không đúng</p>

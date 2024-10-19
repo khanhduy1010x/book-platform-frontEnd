@@ -28,10 +28,10 @@ export function ContextAPI({ children }) {
   const [userInfo, setUserInfo] = useState(null);
   const [success, setSuccess] = useState({});
   const [isLogin, setIsLogin] = useState(false);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [created, setCreated] = useState(false);
   const [isSkipPasswordPrompt, setIsSkipPasswordPrompt] = useState(false);
-  const [modalStatus, setModalStatus] = useState("forgotPassword");
+  const [modalStatus, setModalStatus] = useState("");
   console.log(getToken())
   const [accountCreatRequest, setAccountCreateRequest] = useState({
     phone: "",
@@ -39,6 +39,7 @@ export function ContextAPI({ children }) {
     repassword: "",
     name: "",
     otp: "",
+    username:"",
   });
   const BASE_URL = "http://localhost:9999";
 
@@ -195,7 +196,7 @@ const refreshToken = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        phoneOrMail: phone,
+        username: phone,
         password: password,
       }),
     })
@@ -235,6 +236,7 @@ const refreshToken = () => {
         password: accountCreatRequest.password,
         phone: accountCreatRequest.phone,
         fullName: accountCreatRequest.name,
+        username : accountCreatRequest.username,
         otp: otp,
       }),
     })
@@ -272,6 +274,7 @@ const refreshToken = () => {
       },
       body: JSON.stringify({
         phone: phone,
+        username: accountCreatRequest.username
       }),
     })
       .then((response) => {
@@ -287,6 +290,16 @@ const refreshToken = () => {
             },
           }));
         }
+        if(data.code === 1009) {
+          setError((prevError) => ({
+            ...prevError,
+            register: {
+              ...prevError.register,
+              exitsUsername: "Tên đăng nhập đã tồn tại",
+            },
+          }));
+        }
+        
         if (data.code === 1025) {
           setError({
             ...error,

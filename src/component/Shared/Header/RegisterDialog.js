@@ -13,6 +13,7 @@ export default function RegisterDialog({ setModalStatus }) {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isRePasswordFocused, setIsRePasswordFocused] = useState(false);
   const [isNameFocused, setIsNameFocused] = useState(false);
+  const[isUsernameFocused, setIsUsernameFocused]= useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showRegisterRePassword, setShowRegisterRePassword] = useState(false);
   const handleSendSMSOTP = () => {
@@ -43,7 +44,6 @@ export default function RegisterDialog({ setModalStatus }) {
       }));
     }
     if (accountCreatRequest.password !== accountCreatRequest.repassword) {
-      console.log("khac nha ")
       setError((prevError) => ({
         ...prevError,
         valid: {
@@ -56,7 +56,6 @@ export default function RegisterDialog({ setModalStatus }) {
       }));
       isValid = false;
     } else {
-      console.log("Giong nhe")
       setError((prevError) => ({
         ...prevError,
         valid: {
@@ -93,8 +92,9 @@ export default function RegisterDialog({ setModalStatus }) {
         },
       }));
     }
+
   
-    if (/[^a-zA-Z\s]/.test(accountCreatRequest.name)) {
+    if (/[^\p{L}\s]/u.test(accountCreatRequest.name)) {
       setError((prevError) => ({
         ...prevError,
         valid: {
@@ -114,6 +114,30 @@ export default function RegisterDialog({ setModalStatus }) {
           register: {
             ...prevError.valid.register,
             name: null,
+          },
+        },
+      }));
+    }
+    if (/[^a-zA-Z0-9]/.test(accountCreatRequest.username) || accountCreatRequest.username.length < 6 || accountCreatRequest.username.length > 12) {
+      setError((prevError) => ({
+        ...prevError,
+        valid: {
+          ...prevError.valid,
+          register: {
+            ...prevError.valid.register,
+            username: "Tên đăng nhập không hợp lệ",
+          },
+        },
+      }));
+      isValid = false;
+    } else {
+      setError((prevError) => ({
+        ...prevError,
+        valid: {
+          ...prevError.valid,
+          register: {
+            ...prevError.valid.register,
+            username: null,
           },
         },
       }));
@@ -178,6 +202,39 @@ export default function RegisterDialog({ setModalStatus }) {
                 >
                   Số điện thoại
                 </label>
+              </div>
+              <div className="mt-4">
+              {error?.valid?.register?.username && (
+                <div className="text-red-500">{error?.valid?.register?.username}</div>
+              )}
+                {error?.register?.exitsUsername && (
+          <div className="text-red-500">{error.register?.exitsUsername}</div>
+        )}
+              <div className={`relative w-full  h-14 border rounded-xl`}>               
+                <input
+                  maxLength="20"
+                  type="text"
+                  value={accountCreatRequest.username || ""}
+                  className="input-focus-index input-auth text-white bg-transparent w-full h-full top-0 left-0 absolute pt-4-5 outline-none px-3 text-base-16-19"
+                  onFocus={() => setIsUsernameFocused(true)}
+                  onBlur={() => setIsUsernameFocused(false)}
+                  onChange={(e) => {
+                    setAccountCreateRequest({
+                      ...accountCreatRequest,
+                      username: e.target.value,
+                    });
+                  }}
+                />
+                <label
+                  className={`absolute select-none pointer-events-none left-3 text-xs z-2 block  transition-all ${
+                    isUsernameFocused || accountCreatRequest.username
+                      ? "text-brand top-2.5"
+                      : "text-white-300 top-1/2"
+                  }  -translate-y-1/2 text-description z-3`}
+                >
+                  Tên đăng nhập
+                </label>
+              </div>
               </div>
               <div className="mt-4">
               {error?.valid?.register?.name && (
@@ -333,17 +390,7 @@ export default function RegisterDialog({ setModalStatus }) {
           >
             <span>Đăng ký</span>
           </button>
-          <p className="mt-6 text-white text-sm">Hoặc đăng kí với </p>
-          <div className="flex justify-around mt-4 py-4">
          
-            <div className="bg-[#37373a] py-3 text-white-50 rounded-full  h-[52px] px-8 flex items-center justify-center cursor-pointer button-social">
-              <img
-                src="https://waka.vn/svgs/icon-google.svg"
-                className="cursor-pointer"
-              ></img>
-              <span className="text-base-16-19 text-white-50 ml-2">Google</span>
-            </div>
-          </div>
         </div>
         <div className="pt-2 w-full mt-2 border-t border-primary text-center">
           <div className="mt-4">

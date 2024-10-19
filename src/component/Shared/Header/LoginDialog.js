@@ -7,7 +7,6 @@ export default function LoginDialog({ setModalStatus}) {
   const [eyeShowPW, setEyeShowPW] = useState(false);
   const facebookRef = useRef();
   const handleLoginSubmit = () => {
-    setShowModal(false);
     loginRequest(loginPhone,loginPassword);
   }
   const hanldeLoginGoogle = () => {
@@ -48,7 +47,7 @@ export default function LoginDialog({ setModalStatus}) {
                           />
                           {!loginPhone && (
                             <label className="absolute select-none pointer-events-none left-3 text-13-13 z-2 block transition-all text-white-300 top-1/2 -translate-y-1/2 text-description z-3">
-                              Tên đăng nhập/Số điện thoại
+                              Tên đăng nhập
                             </label>
                           )}
                         </div>

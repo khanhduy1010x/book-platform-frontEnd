@@ -7,7 +7,6 @@ export default function LoginDialog({ setModalStatus}) {
   const [eyeShowPW, setEyeShowPW] = useState(false);
   const facebookRef = useRef();
   const handleLoginSubmit = () => {
-    setShowModal(false);
     loginRequest(loginPhone,loginPassword);
   }
   const hanldeLoginGoogle = () => {
@@ -25,7 +24,6 @@ export default function LoginDialog({ setModalStatus}) {
                   <h3 className="text-base-16-19 text-white-50">
                     Đăng nhập để nhận thêm quyền lợi
                   </h3>
-
                   {
                     error.failLogin && (
                       <p className="text-red-500">Tài khoản hoặc số điện thoại không đúng</p>
@@ -49,7 +47,7 @@ export default function LoginDialog({ setModalStatus}) {
                           />
                           {!loginPhone && (
                             <label className="absolute select-none pointer-events-none left-3 text-13-13 z-2 block transition-all text-white-300 top-1/2 -translate-y-1/2 text-description z-3">
-                              Tên đăng nhập/Số điện thoại
+                              Tên đăng nhập
                             </label>
                           )}
                         </div>

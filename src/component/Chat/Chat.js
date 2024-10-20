@@ -2,12 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import {
   database,
   ref,
+  storage,
   push,
   onValue,
   update,
-  remove,
+  remove
 } from "../../config/firebase.js";
-
+import {
+  uploadBytesResumable,
+  getDownloadURL,
+  ref as storageRef,
+} from "firebase/storage";
+import { v4 as uuidv4 } from "uuid"; 
 import { useAPI } from "../Service/APIContext";
 
 export default function Chat() {
@@ -20,7 +26,16 @@ export default function Chat() {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({}); // Track unread messages count for each user
   const messagesEndRef = useRef(null); // Ref cho phần tử cuối của danh sách tin nhắn
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-
+  const [searchTerm, setSearchTerm] = useState(""); // State lưu trữ từ khóa tìm kiếm
+  const [files, setFiles] = useState([]); // Lưu trữ danh sách file
+  const [tempIMGs, setTempIMGs] = useState([]);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setTempIMGs((prev) => [...prev, URL.createObjectURL(file)]); // Thêm URL tạm thời
+      setFiles((prev) => [...prev, file]); // Thêm file vào danh sách
+    }
+  };
   // Fetch users who have already chatted from Firebase
   useEffect(() => {
     const chatUsersRef = ref(database, "chatUsers");
@@ -98,10 +113,25 @@ export default function Chat() {
   };
 
   // Send message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const trimmedMessage = inputMessage.trim();
     if (trimmedMessage === "") return;
 
+    const fileUrls = [];
+
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        uploadFile(file, (url) => {
+          if (url) {
+            resolve(url); 
+          } else {
+            reject("Upload failed");
+          }
+        });
+      });
+    });
+    const uploadedFileUrls = await Promise.all(uploadPromises);
+    fileUrls.push(...uploadedFileUrls);
     const now = new Date();
     const hours = now.getHours().toString().padStart(2, "0");
     const minutes = now.getMinutes().toString().padStart(2, "0");
@@ -110,6 +140,7 @@ export default function Chat() {
       message: inputMessage,
       time: hours + ":" + minutes,
       like: 0,
+      fileUrls,
       to: to || 1,
       isRead: false, // Initially, the message is not read
       deletedFor: [], // Array to track who has deleted this message
@@ -129,7 +160,32 @@ export default function Chat() {
 
     push(ref(database, "chatUsers"), { userInfo });
   };
+  const uploadFile = (file, callback) => {
+    if (!file) return callback(null);
 
+    const fileName = `${uuidv4()}_${file.name}`;
+    const fileRef = storageRef(storage, `uploads/${fileName}`);
+
+    const uploadTask = uploadBytesResumable(fileRef, file);
+    uploadTask.on(
+      "state_changed",
+      null,
+      (error) => console.error("Upload failed", error),
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          callback(url);
+        });
+      }
+    );
+  };
+  // Thêm phần xử lý file upload ở đây
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Bạn có thể thêm logic upload file vào Firebase ở đây
+      console.log("Uploaded file:", file);
+    }
+  };
   // Filter messages based on user role and check if they were deleted for the current user
   let filterms = message.filter(
     (item) =>
@@ -159,9 +215,17 @@ export default function Chat() {
             }`}
           >
             <h2 className="text-xl font-bold text-gray-700 mb-4">Users</h2>
+              {/* Ô tìm kiếm người dùng */}
+    <input
+      type="text"
+      placeholder="Search users..."
+      className="px-2 py-1 mb-4 w-full rounded-md border border-gray-300"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
             <div className="space-y-2 overflow-y-auto h-96">
               {chatUsers
-                .filter((chatUser) => chatUser.userInfo?.role !== "ADMIN")
+                .filter((chatUser) => chatUser.userInfo?.role !== "ADMIN" && chatUser.userInfo.fullName.includes(searchTerm))
                 .map((chatUser) => (
                   <div key={chatUser.userInfo.accID} className="relative">
                     <div
@@ -217,6 +281,15 @@ export default function Chat() {
               ) : (
                 filterms.map((item, index) => (
                   <div key={index}>
+                 {
+  item?.chatMessage?.fileUrls &&  
+  item?.chatMessage?.fileUrls?.map((fileUrl, index) => (
+    <div key={index}>
+      <img src={fileUrl} target="_blank" rel="noopener noreferrer"/>
+    </div>
+  ))
+}
+
                     <div
                       className={`p-4 rounded-lg shadow mb-2 max-w-xs ${
                         item?.chatMessage?.user?.accID === userInfo?.accID
@@ -248,7 +321,20 @@ export default function Chat() {
               {/* Div dùng để cuộn tới cuối của tin nhắn */}
               <div ref={messagesEndRef} />
             </div>
+            <div className="flex gap-2 mt-3">
+            {
+          tempIMGs.map((item1) => (
 
+
+            <div>
+
+            <img src={item1} className="w-[80px] h-[80px] rounded-xl object-contain"/>
+              <span onClick={(e) => setTempIMGs(tempIMGs.filter(item2 => item2!=item1  ))}>Remove</span>
+              </div>
+          ))
+        }
+            </div>
+   
             <div className="mt-4 flex">
               <input
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
@@ -262,6 +348,15 @@ export default function Chat() {
                 }}
                 onFocus={() => markMessagesAsRead(to)} // Mark messages as read when focusing on the input field for the current user
               />
+                {/* Nút gửi file */}
+                <label className="flex items-center justify-center bg-gray-200 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e)}
+                />
+                <i className="fas fa-paperclip"></i>
+              </label>
               <button
                 className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 onClick={handleSendMessage}

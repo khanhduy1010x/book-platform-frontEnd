@@ -1,9 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-import {set, getDatabase, ref,get,update, push ,onValue, remove } from "firebase/database";
-import { getStorage } from "firebase/storage";
+// Import các hàm từ firebase/storage
+import { getStorage, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDatabase, ref, get, update, push, onValue, remove, set } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,7 +17,11 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Initialize Firebase Database
 const database = getDatabase(app);
-export{database, ref,get,update, push ,onValue, remove,set}
 
-export const storage = getStorage(app);
+// Initialize Firebase Storage
+const storage = getStorage(app); // Định nghĩa storage
+
+// Export các hàm và đối tượng cần thiết
+export { database, ref, get, update, push, onValue, remove, set, storage, uploadBytes, getDownloadURL };

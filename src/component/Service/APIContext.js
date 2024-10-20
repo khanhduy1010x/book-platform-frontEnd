@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { setToken, getToken, setUser,removeToken, removeUser, getUser } from "./LocalStorage";
 import { useGoogleLogin } from '@react-oauth/google';  
+import ForgotPassword from "../Shared/Header/ForgotPassword";
 
 const APIContext = createContext();
 
@@ -27,12 +28,18 @@ export function ContextAPI({ children }) {
   });
   const [userInfo, setUserInfo] = useState(null);
   const [success, setSuccess] = useState({});
+  const [usernameForgotPassword,setUsernameForgotPassword]=useState("");
   const [isLogin, setIsLogin] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [created, setCreated] = useState(false);
+  const [chooseMethodSendOTP, setChooseMethodSendOTP]=useState(false);
+  const [forgotPasswordInfo, setForgotPasswordInfo] = useState({
+    phone: "",
+    email: ""
+  })
   const [isSkipPasswordPrompt, setIsSkipPasswordPrompt] = useState(false);
   const [modalStatus, setModalStatus] = useState("");
-  console.log(getToken())
+  const [otpForgotPassword, setOtpForgotPassword]=useState(false);
   const [accountCreatRequest, setAccountCreateRequest] = useState({
     phone: "",
     password: "",
@@ -41,6 +48,10 @@ export function ContextAPI({ children }) {
     otp: "",
     username:"",
   });
+  const [resetedPassword, setResetedPassword] = useState(false);
+  const [tempToken, setTempToken]=useState("");
+  const [invalidOtpResetPassword, setInvalidOtpResetPassword]= useState("");
+  const [errorUsernameFGP, setErrorUsernameFGP]=useState("");
   const BASE_URL = "http://localhost:9999";
 
   // Kiem tra token xem con han khong ( introspect ) 
@@ -117,6 +128,14 @@ const refreshToken = () => {
         },
       },
     });
+    setErrorUsernameFGP("")
+    setChooseMethodSendOTP(false);
+    setInvalidOtpResetPassword("");
+    setForgotPasswordInfo(null);
+    if(modalStatus !== "forgotPassword" && modalStatus !== "otp" ){
+      setUsernameForgotPassword("")
+    }
+
   }, [modalStatus, showModal]);
   useEffect(() => {
     setAccountCreateRequest({
@@ -419,10 +438,104 @@ const refreshToken = () => {
       console.log("Error chang prompt password", error)
     })
   }
-  ////Dang nhap bang facbook 
- 
+  const getInfoForgotPassword = () => {
+    fetch(`${BASE_URL}/account/get-info-reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: usernameForgotPassword,
+      }),
+    }).then((response) => {
+      return response.json()
+    }).then((data) => {
+      if (data.code === 1000) {
+        setChooseMethodSendOTP(true);
+        setForgotPasswordInfo({
+        ...data.result
+        })
+      }else {
+        setErrorUsernameFGP("Không tìm thấy tài khoản này vui lòng kiểm tra lại")
+        console.log("Khong ton tai")
+      }
+    }).catch((error) => {
+      console.log("Error chang prompt password", error)
+    })
+  } 
+  const sendOTPForgotPassword = (isPhone) => {
+    setOtpForgotPassword(true);
+    setModalStatus("otp");
+    fetch(`${BASE_URL}/auth/forgotPassword`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: usernameForgotPassword,
+        isPhone: isPhone
+      }),
+    }).then((response) => {
+      return response.json()
+    }).then((data) => {
+      if (data.code === 1000) {
+     console.log("dagui");
+        
+      }else {
+        console.log("Khong ton tai")
+      }
+    }).catch((error) => {
+      console.log("Error chang prompt password", error)
+    })
+  } 
+  const validateOtpForgotPassword = (otp) => {
+    fetch(`${BASE_URL}/auth/validate-otp-forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        otp: otp,
+        username:usernameForgotPassword
+      }),
+    }).then((response) => {
+      return response.json()
+    }).then((data) => {
+      if (data.code === 1000) {
+       setTempToken(data.result.tempToken)
+       setModalStatus("forgotPasswordCreatePass");
+      }else {
+        setInvalidOtpResetPassword("Mã xác thực không chính xác vui lòng thử lại");
+      }
+    }).catch((error) => {
+      console.log("Error chang prompt password", error)
+    })
+  } 
+  const resetPasswordForForgotPassword = (password) => {
+    fetch(`${BASE_URL}/auth/reset-password-forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization : `Bearer ${tempToken}`
+      },
+      body: JSON.stringify({
+        password: password,
+      }),
+    }).then((response) => {
+      return response.json()
+    }).then((data) => {
+      if (data.code === 1000) {
+        console.log("Doi password thanh cong")
+        setResetedPassword(true)
+      }
+    }).catch((error) => {
+      console.log("Error chang prompt password", error)
+    })
+  }  
   const value = {
+    validateOtpForgotPassword,
     skipPasswordPrompt,
+    sendOTPForgotPassword,
     createPassword,
     sendSMSOTPReg,
     error,
@@ -439,9 +552,21 @@ const refreshToken = () => {
     showModal,
     userInfo,
     setShowModal,
+    setUsernameForgotPassword,
+    usernameForgotPassword,
     isLogin,
     googleLogin,
-    created
+    created,
+    getInfoForgotPassword,
+    setChooseMethodSendOTP,
+    chooseMethodSendOTP,
+    forgotPasswordInfo,
+    chooseMethodSendOTP,
+    otpForgotPassword,
+    resetedPassword,
+    resetPasswordForForgotPassword,
+    errorUsernameFGP,
+    invalidOtpResetPassword
   };
 
   return <APIContext.Provider value={value}>{children}</APIContext.Provider>;

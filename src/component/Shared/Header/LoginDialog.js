@@ -86,7 +86,9 @@ export default function LoginDialog({ setModalStatus}) {
                       </div>
                     </div>
                   </div>
-                  <p className="text-primary text-base-16-19 text-right cursor-pointer">
+                  <p className="text-primary text-base-16-19 text-right cursor-pointer"
+                  onClick={() => setModalStatus("forgotPassword")}
+                  >
                     Quên mật khẩu
                   </p>
                   <div className="mt-5">

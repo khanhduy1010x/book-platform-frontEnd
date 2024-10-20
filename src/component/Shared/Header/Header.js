@@ -12,6 +12,7 @@ import { useAPI } from "../../Service/APIContext";
 import AvatarComponent from "../Helper/AvatarComponent";
 import CreatePasswordDialog from "./CreatePasswordDialog";
 import ForgotPassword from "./ForgotPassword";
+import ForgotPasswordCreateNewPass from "./ForgotPasswordCreateNewPass";
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchInput, setSearchInput] = useState(false);
@@ -74,6 +75,7 @@ export default function Header() {
               <LoginDialog setModalStatus={setModalStatus} />
             ) : modalStatus === "createPassword" ? (<CreatePasswordDialog/>) :
               modalStatus === "forgotPassword" ? (<ForgotPassword/> ) :
+              modalStatus === "forgotPasswordCreatePass" ? (<ForgotPasswordCreateNewPass/>) :
             (
               //  Dang ki -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
               <RegisterDialog setModalStatus={setModalStatus} />

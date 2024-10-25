@@ -42,9 +42,9 @@ export default function ListByTypePage() {
     <h2 className="text-white font-bold font-oswald text-[24px]">Tất cả sách "<span className="text-primary">Trinh Thám</span>"</h2>
     <p className="text-white font-oswald">1293 kết quả</p>
 <div className="">
+    {/* <BookSlider/>
     <BookSlider/>
-    <BookSlider/>
-    <BookSlider/>
+    <BookSlider/> */}
 {/* ----------------------------------------------------------------------------- */}
 
 

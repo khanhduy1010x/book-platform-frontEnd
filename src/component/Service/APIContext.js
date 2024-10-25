@@ -26,6 +26,7 @@ export function ContextAPI({ children }) {
       },
     },
   });
+  const [listBookHome, setListBookHome] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [success, setSuccess] = useState({});
   const [usernameForgotPassword,setUsernameForgotPassword]=useState("");
@@ -53,7 +54,10 @@ export function ContextAPI({ children }) {
   const [invalidOtpResetPassword, setInvalidOtpResetPassword]= useState("");
   const [errorUsernameFGP, setErrorUsernameFGP]=useState("");
   const BASE_URL = "http://localhost:9999";
-
+/////Fetch lay cac data home 
+useEffect(() => {
+getListBookHome();
+},[])
   // Kiem tra token xem con han khong ( introspect ) 
   const [isFetching, setIsFetching] = useState(false);
   useEffect(() => {
@@ -532,6 +536,26 @@ const refreshToken = () => {
       console.log("Error chang prompt password", error)
     })
   }  
+   /// Lay thong tin user
+   const getListBookHome = () => {
+    fetch(`${BASE_URL}/book/list-book`, {
+      method: "GET",
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.code === 1000) {
+          setListBookHome(data?.result);
+        }
+        if (data.code !==1000) {
+        }
+      })
+      .catch((e) => {});
+  };
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
   const value = {
     validateOtpForgotPassword,
     skipPasswordPrompt,
@@ -566,7 +590,10 @@ const refreshToken = () => {
     resetedPassword,
     resetPasswordForForgotPassword,
     errorUsernameFGP,
-    invalidOtpResetPassword
+    invalidOtpResetPassword,
+    listBookHome,
+    setListBookHome,
+    formatNumber
   };
 
   return <APIContext.Provider value={value}>{children}</APIContext.Provider>;

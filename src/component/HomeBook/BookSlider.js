@@ -3,7 +3,9 @@ import freeIcon from "../../assets/image/free.png";
 import payIncon from "../../assets/image/paidIcon.png";
 import memberIcon from "../../assets/image/meberIcon.png";
 import { Link } from "react-router-dom";
-export default function BookSlider({scale}) {
+import { useAPI } from "../Service/APIContext";
+export default function BookSlider({scale, listBook}) {
+  const {formatNumber} = useAPI();
   const [translateX, setTranslateX] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isRightHalf, setIsRightHalf] = useState(false);
@@ -110,7 +112,8 @@ export default function BookSlider({scale}) {
       >
         <div className="w-full max-w-full list-carousel-item  hide-scrollbar transition-transform ease-in-out">
           <div className="w-max flex hide-scrollbar pt-4 px-2">
-            {numbers.map((_, index) => (
+            {listBook.map((item, index) => (
+              
               <div
                 key={index}
                 className={`inline-block relative lg:w-52 group xl:w-56 group 2xl:w-[265px] cursor-pointer float-left mr-[42px] last:mr-[0px] ${'scale-' + scale}`}
@@ -125,26 +128,29 @@ export default function BookSlider({scale}) {
                     />
                     <div className="relative w-full overflow-hidden pt-[150%] grid-center rounded-xl">
                       <img
-                        src="https://307a0e78.vws.vegacdn.vn/view/v2/image/img.book/0/0/1/49435.jpg?v=1&amp;w=350&amp;h=510"
-                        alt="Đập nồi bán sắt đi học"
-                        className="absolute top-0 left-0 object-cover w-full h-full"
+                        src={item.coverImage}
+                        alt={item.bookName}
+                        className="absolute top-0 left-0 object-cover w-full  h-full"
                       />
                     </div>
                     {/* <div className="absolute top-0 flex right-0 p-2 bg-primary text-white rounded-tr-xl rounded-bl-xl ">
                     <p className="text-sm font-bold uppercase ">Miễn phí</p>
                   </div> */}
+                  {item.price > 0 &&
                     <div className="absolute top-0 flex right-0 p-2 bg-cyan-to-lightblue text-white rounded-tr-xl rounded-bl-xl ">
-                      <p className="text-sm font-oswald px-1 font-bold uppercase ">
-                        29.000đ
-                      </p>
-                    </div>
+                    <p className="text-sm font-oswald px-1 font-bold uppercase ">
+                    {formatNumber(item.price) +' đ'}
+                    </p>
+                  </div>
+                  }
+                  
                   </div>
                   <div className="mt-4 h-[41px]">
                     <Link
                       to="/detail"
                       className="text-white text-base-16-20 font-bold t-ellipsis-2 hover:text-primary"
                     >
-                      Đập nồi bán sắt đi học
+                     {item.bookName}
                     </Link>
                   </div>
                 </div>
@@ -158,7 +164,7 @@ export default function BookSlider({scale}) {
                     <div className="flex justify-between w-full h-full">
                       {!isRightHalf &&
                         aTagContent(
-                          "https://307a0e78.vws.vegacdn.vn/view/v2/image/img.book/0/0/1/49435.jpg?v=1&amp;w=350&amp;h=510"
+                         `${item.coverImage}`
                         )}
 
                       <div className="w-[63%]">
@@ -166,12 +172,12 @@ export default function BookSlider({scale}) {
                           to={"/detail"}
                           className="font-bold text-white-default text-2xl t-ellipsis-2"
                         >
-                          Đập nồi bán sắt đi học
+                          {item.bookName}
                         </Link>
                         <div>
                           <Link to="/detail">
                             <h2 className="mt-4 font-bold text-white-default text-base">
-                              Hồng Thứ Bắc
+                            {item.author.name}
                             </h2>
                           </Link>
                         </div>
@@ -204,13 +210,7 @@ export default function BookSlider({scale}) {
                         <div className="max-h-[400px] overflow-hidden">
                           <div className="my-4 text-white font-bold text-sm line-clamp-4">
                             <p>
-                              Trong giai đoạn huấn luyện chuẩn bị cho một giải
-                              đấu nào đó, cánh truyền thông lần lượt đến phỏng
-                              vấn chiến sĩ của các trường. Chương trình được
-                              phát sóng trực tiếp trên tinh võng nên khán giả có
-                              thể thấy được toàn cảnh tất cả mọi người đang ra
-                              sức huấn luyện, tăng cường trọng lực, đánh giáp lá
-                              cà, đánh gần rồi cả đánh tầm xa…
+                         {item.description}
                             </p>
                           </div>
                           <a
@@ -223,7 +223,7 @@ export default function BookSlider({scale}) {
                       </div>
                       {isRightHalf &&
                         aTagContent(
-                          "https://307a0e78.vws.vegacdn.vn/view/v2/image/img.book/0/0/1/49435.jpg?v=1&amp;w=350&amp;h=510"
+                         `${item.coverImage}`
                         )}
                     </div>
                   </div>

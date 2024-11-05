@@ -5,7 +5,7 @@ import memberIcon from "../../assets/image/meberIcon.png";
 import { Link } from "react-router-dom";
 import { useAPI } from "../Service/APIContext";
 export default function BookSlider({scale, listBook}) {
-  const {formatNumber} = useAPI();
+  const {formatNumber,memberMapper,addToCart} = useAPI();
   const [translateX, setTranslateX] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isRightHalf, setIsRightHalf] = useState(false);
@@ -77,8 +77,10 @@ export default function BookSlider({scale, listBook}) {
     setHoveredIndex(null);
   };
 
-  const aTagContent = (url) => (
-    <Link href="/" className="relative lg:w-48 xl:w-50 2xl:w-60">
+  const aTagContent = (url,id) => (
+    <Link to={`/detail/${id}`} className="relative lg:w-48 xl:w-50 2xl:w-60 relative">
+                          <div className="absolute top-0 left-0 w-full h-full book-border z-10"></div>
+
       <img
         src={url}
         alt="Đập nồi bán sắt đi học"
@@ -86,10 +88,48 @@ export default function BookSlider({scale, listBook}) {
       />
     </Link>
   );
+  function getBookDescription(item) {
+    if (item.memberType === "NONE" && item.price === 0 && item.bookType === "EBOOK") {
+        return "Sách miễn phí";
+    }
+    if (item.bookType === "PAPERBACK") {
+        return "Sách giấy";
+    }
+    if (item.bookType === "EBOOK" && item.memberType === "NONE" && item.price > 0) {
+        return "Sách trả phí";
+    }
+    return memberMapper(item.memberType);
+}
+
+function getButtonClass(item) {
+  const description = getBookDescription(item);
+  
+  if (description === "Sách miễn phí") {
+      return "bg-gradient-to-r from-blue-700 to-blue-400"; 
+  }
+  if (description === "Sách giấy") {
+      return "bg-white !text-black"; 
+  }
+  if (description === "Sách trả phí") {
+      return "bg-gradient-to-r from-orange-400 to-orange-700"; 
+  }
+  if (description === "Thành viên bạc") {
+      return "bg-gradient-to-r from-gray-300 to-gray-400"; 
+  }
+  if (description === "Thành viên vàng") {
+      return "bg-gradient-to-r from-yellow-300 to-yellow-600 !text-black"; 
+  }
+  if (description === "Thành viên kim cương") {
+      return "bg-gradient-to-r from-blue-400 to-blue-500 !top-5 !-left-10 "; 
+  }
+  
+  return "bg-gray-200";
+}
 
   return (
     <div className="relative">
-      {!isAtStart && (
+
+      {   listBook.length > 4 && !isAtStart && (
         <div
           className="flex justify-center text-center items-center p-[25px] w-[30px] h-[30px] bg-custom-modal-dark-III backdrop-blur hover:bg-custom-modal-dark absolute top-[40%] -left-7 z-[100] cursor-pointer text-[24px] rounded-full"
           onClick={handleLeftClick}
@@ -97,7 +137,7 @@ export default function BookSlider({scale, listBook}) {
           <i className="fa-solid text-white fa-chevron-left"></i>
         </div>
       )}
-      {!isAtEnd && (
+      {  listBook.length > 4 && !isAtEnd && (
         <div
           className="flex justify-center text-center items-center p-[25px] w-[30px] h-[30px] bg-custom-modal-dark-III backdrop-blur hover:bg-custom-modal-dark absolute top-[40%] -right-7 z-[2] cursor-pointer text-[24px] rounded-full"
           onClick={handleRightClick}
@@ -107,11 +147,11 @@ export default function BookSlider({scale, listBook}) {
       )}
 
       <div
-        className="w-[100%] hide-scrollbar relative overflow-x-auto "
+        className="w-[100%] hide-scrollbar relative overflow-x-auto overflow-y-hidden"
         ref={sliderRef}
       >
         <div className="w-full max-w-full list-carousel-item  hide-scrollbar transition-transform ease-in-out">
-          <div className="w-max flex hide-scrollbar pt-4 px-2">
+          <div className="w-max ml-8 flex hide-scrollbar pt-4 px-2">
             {listBook.map((item, index) => (
               
               <div
@@ -121,24 +161,30 @@ export default function BookSlider({scale, listBook}) {
                 onMouseLeave={handleMouseLeave}
               >
                 <div>
-                  <div className="relative w-full">
-                    <img
-                      src={memberIcon}
-                      className="w-[50px] group-hover:opacity-0 absolute transition-opacity darution-500 ease-in-out z-20 -left-2 -top-2"
-                    />
+                  <div className="relative w-full mt-5 ">
+                  <button className={`absolute py-1 z-[10] px-3 group-hover:hidden -left-8 top-2 -rotate-[35deg] black_border ${getButtonClass(item)} text-white  font-bold`}>
+    {getBookDescription(item)}                 
+</button>
+                  
                     <div className="relative w-full overflow-hidden pt-[150%] grid-center rounded-xl">
+                    <div className="absolute top-0 left-0 w-full h-full book-border z-10"></div>
                       <img
                         src={item.coverImage}
                         alt={item.bookName}
                         className="absolute top-0 left-0 object-cover w-full  h-full"
                       />
                     </div>
-                    {/* <div className="absolute top-0 flex right-0 p-2 bg-primary text-white rounded-tr-xl rounded-bl-xl ">
+                    {
+                      item.bookType === "EBOOK" && item.price === 0 && item.memberType === "NONE" 
+                      &&
+                       <div className="absolute top-0 flex right-0 p-2 bg-primary text-white rounded-tr-xl rounded-bl-xl ">
                     <p className="text-sm font-bold uppercase ">Miễn phí</p>
-                  </div> */}
+                  </div> 
+                    }
+                   
                   {item.price > 0 &&
                     <div className="absolute top-0 flex right-0 p-2 bg-cyan-to-lightblue text-white rounded-tr-xl rounded-bl-xl ">
-                    <p className="text-sm font-oswald px-1 font-bold uppercase ">
+                    <p className="text-sm font-oswald !text-[#F5FFFA] px-1 font-bold uppercase ">
                     {formatNumber(item.price) +' đ'}
                     </p>
                   </div>
@@ -156,8 +202,8 @@ export default function BookSlider({scale, listBook}) {
                 </div>
                 {hoveredIndex === index && (
                   <div
-                    className={`absolute h-[87.5%] effect animate 
-                  transition-opacity duration-500 ease-in-out bg-dark-gradient border-0.1 border-primary text-white backdrop-blur rounded-xl top-0 z-50 p-4 min-w-[732px] book-content ${
+                    className={`absolute h-[87.5%] effect cursor-pointer animate 
+                  transition-opacity duration-500 ease-in-out bg-dark-gradient mt-2 border-0.1 border-primary text-white backdrop-blur rounded-xl top-0 z-50 p-4 min-w-[732px] book-content ${
                     isRightHalf ? "right-0" : "left-0"
                   }`}
                   >
@@ -165,7 +211,7 @@ export default function BookSlider({scale, listBook}) {
                       {!isRightHalf &&
                         aTagContent(
                          `${item.coverImage}`
-                        )}
+                        ,item.id)}
 
                       <div className="w-[63%]">
                         <Link
@@ -184,20 +230,27 @@ export default function BookSlider({scale, listBook}) {
                         <div className="flex items-center justify-between mt-4">
                           <div>
                             <p className="font-bold text-primary text-base">
-                              Miễn phí
+                              {getBookDescription(item)}
                             </p>
                           </div>
                           <div className="flex">
-                            <div className="flex items-center px-4 py-3 mr-2 rounded-full bg-primary hover:bg-f79">
+                            <Link 
+                            to={item.bookType === "EBOOK" ? `/epubread/${item.id}` : null}
+                            className="flex items-center px-4 py-3 mr-2 rounded-full bg-primary hover:bg-f79">
                               <img
                                 src="https://waka.vn/svgs/icon-read-book.svg"
                                 alt="icon-read-book"
                                 className="cursor-pointer"
                               />
-                              <p className="ml-2 text-white-default text-base">
-                                Đọc sách
-                              </p>
-                            </div>
+                              <button className="ml-2 !cursor-pointer text-white-default text-base"
+                              onClick={() => {
+                                if(item.bookType === "PAPERBACK")
+                                  addToCart(item.id,1);
+                              }}
+                              >
+                              {item.bookType === "EBOOK" ? "Đọc sách" : "Thêm vào giỏ hàng"}
+                              </button>
+                            </Link>
                             <div className="p-3 rounded-full bg-background-white text-primary hover:bg-hover-white border-white">
                               <img
                                 src="https://waka.vn/svgs/icon-heart.svg"
@@ -213,18 +266,18 @@ export default function BookSlider({scale, listBook}) {
                          {item.description}
                             </p>
                           </div>
-                          <a
-                            href="/ebook/dap-noi-ban-sat-di-hoc-hong-thu-bac-bgNYYW.html"
+                          <Link
+                            to={`/detail/${item.id}`}
                             className="text-primary mt-4 font-bold text-lg"
                           >
                             Chi tiết
-                          </a>
+                          </Link>
                         </div>
                       </div>
                       {isRightHalf &&
                         aTagContent(
                          `${item.coverImage}`
-                        )}
+                        ,item.id)}
                     </div>
                   </div>
                 )}

@@ -1,13 +1,16 @@
 import { useAPI } from "../Service/APIContext";
 import BookSlider from "./BookSlider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BookHome() { 
-  const {listBookHome} = useAPI();
+  const {listBookHome,getListBookHome} = useAPI();
+  useEffect(() => {
+    getListBookHome();
+  },[])
     return (
       <div className="bg-[#121214] ">
       {
-        listBookHome.map((item,index) => (
+        listBookHome.filter((item) => item?.listBook?.length > 0).map((item,index) => (
           <div key={index} className="w-full  container-block bg-[#121214] pt-[60px] pl-[60px] pr-[60px] ">
           
           <div className="flex items-center w-max mb-6">

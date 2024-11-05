@@ -8,6 +8,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Rubik:ital,wght@0,800;1,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Outfit:wght@100..900&family=Rubik:ital,wght@0,900;1,900&display=swap');
 @import "~slick-carousel/slick/slick.css";
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
 @import "~slick-carousel/slick/slick-theme.css";
 input:focus {
   outline: none;
@@ -125,3 +132,129 @@ border-color: white;
 .react-datepicker__triangle path {
   display: none;
 }
+.purple_border {
+  box-shadow: 4px 4px 1px rgb(126, 34, 206);
+}
+
+.black_border {
+  box-shadow: 4px 4px 1px rgb(0, 0, 0);
+}
+iframe#webpack-dev-server-client-overlay{display:none!important}
+.book-border {
+  background: linear-gradient(90deg, rgba(2, 0, 36, .39), rgba(0, 0, 0, .5) 1.83%, hsla(0, 0%, 100%, .36) 3.21%, rgba(0, 0, 0, .33) 4.72%, rgba(247, 254, 255, .28) 9.84%, hsla(0, 0%, 100%, 0) 47.85%);
+}
+.box-shadow-14 {
+  box-shadow: rgba(255, 255, 255, 0.1) 0px 8px 24px;
+
+}
+.custom-triangle {
+  position: absolute;
+  top: -2px;
+  right: 6px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(18, 18, 20, 0.9); 
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+.backdrop-blur-class {
+  backdrop-filter: blur(10px) !important;
+}
+.box-shadow-1 {
+  box-shadow: rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+.box-shadow-2 {
+  box-shadow: rgba(240, 46, 170, 0.4) 0px 5px, rgba(240, 46, 170, 0.3) 0px 10px, rgba(240, 46, 170, 0.2) 0px 15px, rgba(240, 46, 170, 0.1) 0px 20px, rgba(240, 46, 170, 0.05) 0px 25px;
+}
+body {
+  margin: 0;
+  background-color: #2e3537;
+}
+.shadow-bot {
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px 0px, rgba(0, 0, 0, 0.22) 0px 10px 10px 0px;
+
+}
+.disable-voucher {
+  pointer-events: none;
+  opacity: 0.5; 
+  cursor: not-allowed;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  display: none;
+
+}
+
+
+.custom-checkbox .checkmark {
+  width: 25px; 
+  height: 25px; 
+  background-color: #eee;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark {
+  background-color: #00cec8; 
+}
+
+
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  left: 8px; 
+  top: 1px; 
+  width: 10px; 
+  height: 18px; 
+  border: solid white;
+  border-width: 0 3px 3px 0; 
+  transform: rotate(45deg);
+  display: none;
+}
+
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+  display: block;
+}
+.box {
+  --size: 5px;
+  --p: 5px;
+  --R: 7.07px; /* sqrt(var(--size)*var(--size) + var(--p)*var(--p)) */
+  height: 30px;
+  margin: 5px;
+  border: 1px solid;
+  
+  
+}
+
+.box + .box {
+  background-repeat: repeat-x;
+}
+
+.box.mask {
+  -webkit-mask:
+    radial-gradient(var(--R) at 50% calc(var(--size) + var(--p)), rgb(237, 237, 237) 99%, #0000 101%) calc(50% - 2*var(--size)) 0/calc(4*var(--size)) 100%,
+    radial-gradient(var(--R) at 50% calc(-1*var(--p)), #0000 99%, rgb(243, 240, 240) 101%) 50% var(--size)/calc(4*var(--size)) 100% repeat-x;
+  
+  /* Thay đổi màu nền */
+  background: hsla(0, 0%, 100%, 0.1);  
+  border: none;
+  
+  backdrop-filter: blur(150px);
+
+}
+

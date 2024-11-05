@@ -7,20 +7,44 @@ import RegisterDialog from "./RegisterDialog";
 import CategoryHoverDialog from "./CategoryHoverDialog";
 import NotificationDialog from "./NotificationDialog";
 import Oyster from "../../../assets/image/oyter.png";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAPI } from "../../Service/APIContext";
 import AvatarComponent from "../Helper/AvatarComponent";
 import CreatePasswordDialog from "./CreatePasswordDialog";
 import ForgotPassword from "./ForgotPassword";
 import ForgotPasswordCreateNewPass from "./ForgotPasswordCreateNewPass";
+import MiniCart from "./MiniCart";
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchInput, setSearchInput] = useState(false);
-  const { setModalStatus, modalStatus,logOut, showModal, setShowModal, isLogin, userInfo } =
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentURL, setCurrentURL] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [listCateEbook, setListCateEbook] = useState([]);
+  const [listCatePaperPack, setListCatePaperPack] = useState([]);
+
+  const { setModalStatus,getAllCateByBookType, modalStatus,logOut, showModal, setShowModal, isLogin, userInfo, isAddCart, setIsAddCart } =
     useAPI();
     const handleLogOutSubmit= () => {
       logOut();
     }
+    useEffect(() => {
+      const hiddenMiniCart = setTimeout(() => {
+        setIsAddCart(false);
+      },3000) 
+      return () => clearTimeout(hiddenMiniCart);
+    },[isAddCart])
+    useEffect(() => {
+
+      const fetchCateBook = async () => {
+       const listBook = await getAllCateByBookType("EBOOK");
+      const listPaperPack = await getAllCateByBookType("PAPERBACK");
+        setListCateEbook(listBook);
+        setListCatePaperPack(listPaperPack);
+      }
+      fetchCateBook();
+    },[])
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -35,6 +59,17 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!searchTerm && !location.pathname.includes("/search")) {
+      setCurrentURL(location.pathname);
+    }
+    
+      if (searchTerm.trim()) {
+      navigate(`/search/${searchTerm}`);
+    } else if (currentURL && location.pathname.includes("/search")) {
+      navigate(currentURL);
+    }
+  }, [searchTerm,location.pathname]);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -84,9 +119,9 @@ export default function Header() {
         </div>
       )}
       <header
-        className={`w-full py-[11px] fixed top-0 left-0 z-10 min-h-[70px] transition-all duration-300 ${
+        className={`w-full py-[11px] fixed top-0 left-0 z-10 min-h-[70px] transition-all duration-300   ${
           isScrolled
-            ? "bg-background-book shadow-lg backdrop-blur "
+            ? "bg-background-book shadow-lg backdrop-blur"
             : "bg-custom-modal-dark-III "
         }`}
       >
@@ -109,17 +144,9 @@ export default function Header() {
                   >
                     Sách điện tử
                   </a>
-                  <CategoryHoverDialog title={"Sách điện tử"} />
+                  <CategoryHoverDialog title={"Sách điện tử"} listCate={listCateEbook}/>
                 </div>
-                <div className="relative group">
-                  <a
-                    href="/sach-noi"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                  >
-                    Sách nói
-                  </a>
-                  <CategoryHoverDialog title={"Sách nói"} />
-                </div>
+            
                 <div className="relative group">
                   <a
                     href="/hieu-soi"
@@ -127,16 +154,15 @@ export default function Header() {
                   >
                     Sách giấy
                   </a>
-                  <CategoryHoverDialog title={"Sách giấy"} />
+                  <CategoryHoverDialog title={"Sách giấy"} listCate={listCatePaperPack}/>
                 </div>
                 <div className="relative group">
                   <a
                     href="/sach-giay"
                     className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
                   >
-                    Sách tóm tắt
+                    Nạp Tiền
                   </a>
-                  <CategoryHoverDialog title={"Sách tóm tắt"} />
                 </div>
                 <a
                   href="/sach-tom-tat"
@@ -175,6 +201,8 @@ export default function Header() {
                         placeholder="Nhập tên sách, tác giả.."
                         autoFocus
                         max="100"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         maxLength="100"
                       />
                       <div className="w-6 h-6 min-w-6 flex items-center justify-center"></div>
@@ -210,6 +238,12 @@ export default function Header() {
                 <i className="fa-solid fa-bell text-primary z-10 relative"></i>
                 <NotificationDialog />
               </div>
+              <div className="relative w-100 group cursor-pointer"><Link to="/cart"><i className="fa-duotone cursor-pointer fa-solid fa-cart-shopping  text-primary text-[22px] font-bold"></i></Link>
+              <div className={`absolute -right-5  group-hover:block hidden ${isAddCart ?  '!block' : ""}`}>
+                      <MiniCart isAddCart={isAddCart}/>
+              </div>
+              </div>
+
               <div className="flex items-center group relative gap-2 h-[42px]">
                 {!isLogin ? (
                   <>
@@ -234,7 +268,7 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    <div className="w-[42px] h-[42px] rounded-full min-w-[42px] overflow-hidden  border-white border-[1px] ">
+                  <div className="w-[42px] h-[42px] rounded-full min-w-[42px] overflow-hidden  border-white border-[1px] ">
                       <AvatarComponent avatar={userInfo.avatar} css={"w-full h-full object-cover cursor-pointer"}/>
                     </div>
                     <i className="fa-duotone fa-solid fa-caret-down absolute right-1 text-white text-[18px]"></i>

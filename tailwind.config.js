@@ -4,6 +4,9 @@ module.exports = {
   mode: 'jit',
   theme: {
     extend: {
+      transitionProperty: {
+        width: "width"
+      },
       boxShadow: {
 'black-top': '0px -4px 70px rgba(0, 0, 0, 0.8)',
 'white-outline': '0 0 10px 2px rgba(255, 255, 255, 0.8)', 
@@ -23,6 +26,8 @@ module.exports = {
         '90': '0.9', 
       },
       colors: {
+        'custom-white': 'rgba(255, 255, 255, 0.9)',
+        'black-rgb': 'rgba(18, 18, 20, 0.9)',
         primary: {
           DEFAULT: "#00cec8",
           light: "#3B82F6",
@@ -32,6 +37,7 @@ module.exports = {
       backdropFilter: {
         'none': 'none',
         'blur': 'blur(20px)',
+        'blur-50': 'blur(150px)',
       },
       backgroundColor: {
         "custom-modal-dark": "rgba(18, 18, 20, 0.3)",

@@ -1,4 +1,9 @@
-export default function CategoryHoverDialog({ title, items }) {
+import { useDebugValue, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useAPI } from "../../Service/APIContext";
+
+export default function CategoryHoverDialog({ title, items,listCate,listBookByCateAndBookType}) {
+  
     return (
         <div
                     className="w-[620px] absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 ease-in-out backdrop-blur transition-opacity duration-500 text-white bg-background-book rounded-xl"
@@ -16,105 +21,26 @@ export default function CategoryHoverDialog({ title, items }) {
                           className="grid grid-cols-4 gap-x-6 pt-2"
                           style={{ maxHeight: "38vh", overflowY: "auto" }}
                         >
-                          <a
-                            href="/hieu-soi/hien-dai.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Trinh thám - Kinh dị
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/co-dai.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Marketing - Bán hàng
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/huyen-huyen.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Quản trị - Lãnh đạo
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/huyen-huyen.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Quản trị - Lãnh đạo
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/huyen-huyen.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Quản trị - Lãnh đạo
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/huyen-huyen.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Quản trị - Lãnh đạo
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/huyen-huyen.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Quản trị - Lãnh đạo
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/trinh-tham.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Doanh nhân - Bài học kinh doanh
-                            </p>
-                          </a>
-                          <a
-                            href="/hieu-soi/dam-my.html"
-                            className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
-                          >
-                            <p
-                              className="font-normal"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Chứng khoán - Bất động sản - Đầu tư
-                            </p>
-                          </a>
+                          {listCate && listCate.map((item,index) => (
+  <Link
+  to={`/type/${title === "Sách điện tử" ? 'EBOOK' : 'PAPERBACK'}/${item.id}`}
+  key={index}
+  className="rounded-xl flex justify-center hover:bg-background-white py-2 px-3 cursor-pointer"
+>
+  <p
+    className="font-normal"
+    style={{ fontSize: "15px" }}
+  >
+{
+  item.cateName
+}  </p>
+</Link>
+
+                          ))}
+                        
+                         
+                     
+                         
                         </div>
                         <div className="w-full border-t my-4"></div>
                         <p className="font-medium" style={{ fontSize: "19px" }}>

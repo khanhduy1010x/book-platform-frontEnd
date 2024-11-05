@@ -1,8 +1,30 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import BookSlider from "../HomeBook/BookSlider";
 import AuthorSlider from "../Author/AuthorSlider";
+import { useParams } from "react-router-dom";
+import { useAPI } from "../Service/APIContext";
 
 export default function Search() {
+    const {searchBook} = useAPI();
+    const [listBookSearch, setListBookSearch] = useState([]);
+    const [totalBook, setTotalBook] = useState(0);
+    const {param} = useParams();
+    useEffect(() => {
+        const fetchBook = async () => {
+            const book  = await searchBook(param);
+            setListBookSearch(book)
+         
+            let total = 0;
+            if (book) {
+                book.forEach(item => {
+                    total += item.listBook.length;
+                  });
+            }
+           
+            setTotalBook(total);
+    }
+        fetchBook()
+    },[param])
     const [isFocusType, setIsFocusType] = useState("");
     return (
         <div className="pt-[64px] min-h-screen bg-black"> 
@@ -13,10 +35,10 @@ export default function Search() {
             </div>
             <div className="ml-2 text-white font-oswald">
                 <div className=" font-bold text-[24px]">
-                    <span>Kết quả tìm kiếm cho từ "</span><span className="text-primary">Sách</span><span>"</span>
+                    <span>Kết quả tìm kiếm cho từ "</span><span className="text-primary">{param}</span><span>"</span>
                 </div>
                 <div>
-                    <span>Tìm thấy 1062 kết quả phù hợp</span>
+                    <span>Tìm thấy {totalBook} kết quả phù hợp</span>
                 </div>
             </div>
             </div>
@@ -38,32 +60,22 @@ export default function Search() {
                </div>
             </div>
 
-           <div className="mt-5">
-            <div className="text-white ml-2 font-bold font-rubik text-[28px]">
-                <span>Chính trị (122) </span>
-            </div>
-            <div className="">
-            <BookSlider scale={75}/>
-            </div>
-           </div>
+            {listBookSearch && listBookSearch.map((item,index) => (
+  <div className="mt-5">
+  <div className="text-white ml-2 font-bold font-rubik text-[28px]">
+      <span>{item.cateName + ` (${item.listBook.length})`}</span>
+  </div>
+  <div className="">
+  <BookSlider scale={75} listBook={item.listBook}/>
+  </div>
+ </div>
+            )) 
+            }
+         
 
-           <div className="mt-5">
-            <div className="text-white ml-2 font-bold font-rubik  text-[28px]">
-                <span>Xã hội (322) </span>
-            </div>
-            <div className="">
-            <BookSlider scale={75}/>
-            </div>
-           </div>
+       
 
-           <div className="mt-5">
-            <div className="text-white ml-2 font-bold font-rubik  text-[28px]">
-                <span>Doanh nhân (222) </span>
-            </div>
-            <div className="">
-            <BookSlider scale={75}/>
-            </div>
-           </div>
+        
 
            <div className="mt-5">
             <div className="text-white ml-2 font-bold font-rubik  text-[28px]">

@@ -4,30 +4,34 @@ import CarouselBase from "./Carousel";
 import { useScroll } from "@react-spring/web";
 import { useEffect, useState } from "react";
 import { list } from "@material-tailwind/react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import { useAPI } from "../../Service/APIContext";
 export default function Carousel3d({ listBook }) {
+  const {bookType} = useParams();
   let books = [];
   const [currentSlide, setCurrentSlide] = useState();
   listBook.forEach((item) => {
-    books.push({ key: item.id, content: <Card book={item} />, book: item });
+    item.listBook.forEach((item) => {
+      books.push({ key: item.id, content: <Card book={item} />, book: item });
+    })
   });
   useEffect(() => {
-    setCurrentSlide(books[0]?.book.id);
-  }, []);
+    setCurrentSlide(listBook[0]?.listBook[0]?.id);
+  }, [listBook]);
 
   return (
     <div className="mt-10 flex relative z-1">
       <div className="text-white w-full">
-        <span className="text-[48px] font-bold font-oswald ">Sách giấy</span>
-        {listBook.map((item, index) => {
+        <span className="text-[48px] font-bold font-oswald ">{bookType === "EBOOK" ? 'Sách điện tử' : 'Sách Giấy'}</span>
+        {books.map((item, index) => {
           return (
             <div className="mt-5" key={index}>
-              {item.id === currentSlide && (
+              {item.book.id === currentSlide && (
                 <>
                   <h2 className="text-[28px] mb-3 text-primary font-bold ">
-                    {item.name}
+                    {item.book.bookName}
                   </h2>
-                  <p className="line-clamp-5 font-rubik">{item.description}</p>
+                  <p className="line-clamp-5 font-rubik">{item.book.description}</p>
                 </>
               )}
             </div>

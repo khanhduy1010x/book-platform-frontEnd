@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { setToken, getToken, setUser,removeToken, removeUser, getUser } from "./LocalStorage";
 import { useGoogleLogin } from '@react-oauth/google';  
 import ForgotPassword from "../Shared/Header/ForgotPassword";
+import { useNavigate, useParams } from "react-router-dom";
 
 const APIContext = createContext();
 
@@ -26,7 +27,12 @@ export function ContextAPI({ children }) {
       },
     },
   });
+  const [listVoucher, setListVoucher] = useState([]);
+  const [isAddCart, setIsAddCart] = useState(false);
+  const [listCart, setListCart] = useState([]);
+  const [listBookByCateAndBookType,setListBookByCateAndBookType]= useState([])
   const [listBookHome, setListBookHome] = useState([]);
+  const [listBanner, setListBanner] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [success, setSuccess] = useState({});
   const [usernameForgotPassword,setUsernameForgotPassword]=useState("");
@@ -55,9 +61,7 @@ export function ContextAPI({ children }) {
   const [errorUsernameFGP, setErrorUsernameFGP]=useState("");
   const BASE_URL = "http://localhost:9999";
 /////Fetch lay cac data home 
-useEffect(() => {
-getListBookHome();
-},[])
+
   // Kiem tra token xem con han khong ( introspect ) 
   const [isFetching, setIsFetching] = useState(false);
   useEffect(() => {
@@ -536,7 +540,7 @@ const refreshToken = () => {
       console.log("Error chang prompt password", error)
     })
   }  
-   /// Lay thong tin user
+   /// get all book home by cate
    const getListBookHome = () => {
     fetch(`${BASE_URL}/book/list-book`, {
       method: "GET",
@@ -553,10 +557,265 @@ const refreshToken = () => {
       })
       .catch((e) => {});
   };
+
+  /// get banner 
+  const getListBanner = () => {
+    fetch(`${BASE_URL}/banner/view-banner`, {
+      method: "GET",
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.code === 1000) {
+          setListBanner(data?.result);
+        }
+        if (data.code !==1000) {
+        }
+      })
+      .catch((e) => {});
+  };
   function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
+  function memberMapper(memberType) {
+    return memberType === "BASIC" ? "Thành viên bạc" : memberType === "ADVANCE" ? "Thành viên vàng" :  memberType === "PREMIUM" ? "Thành viên kim cương" : null 
+  }
+  async function getDetailBook(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/book/book-detail/${id}`, {
+        method: "GET",
+      });
+      const data = await response.json();
+
+      if (data.code === 1000) {
+        return data.result; 
+      } else {
+        return null; 
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      return null; 
+    }
+  }
+  async function getEpubFile(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/book/book-detail/${id}`, {
+        method: "GET",
+      });
+      const data = await response.json();
+
+      if (data.code === 1000) {
+        return data.result.url; 
+      } else {
+        return null; 
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      return null; 
+    }
+  }
+  async function searchBook(param) {
+    try {
+      const response = await   fetch(`${BASE_URL}/book/search/${param}`, {
+        method: "GET",
+      });
+      const data = await response.json();
+
+      if (data.code === 1000) {
+        return data.result; 
+      } else {
+        return []; 
+      }
+    } catch (error) {
+      console.error("Error fetching book search:", error);
+      return []; 
+    }
+  }
+  async function getAllCateByBookType(param) {
+    try {
+      const response = await   fetch(`${BASE_URL}/book/filter-cate?bookType=${param}`, {
+        method: "GET",
+      });
+      const data = await response.json();
+      if (data.code === 1000) {
+        return data.result; 
+      } else {
+        return []; 
+      }
+    } catch (error) {
+      console.error("Error fetching book search:", error);
+      return []; 
+    }
+  }
+  const getListBookByCateAndBookType = (cate,bookType) => {
+    fetch(`${BASE_URL}/book/get-by-cate-type?bookType=${bookType}&cateID=${cate}`, {
+      method: "GET",
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.code === 1000) {
+          setListBookByCateAndBookType(data?.result);
+        }
+        if (data.code !==1000) {
+        }
+      })
+      .catch((e) => {});
+  };
+ /////Cart 
+  const getListCart = () => {
+    const token = getToken();
+    console.log("isOk")
+  
+      fetch(`${BASE_URL}/cart/view`, {
+        method: "GET",
+        headers: {
+          Authorization : `Bearer ${token}`
+        }
+      },
+    ).then((response) => {
+      return response.json();
+    }
+    ).then((data) => {
+      if (data.code === 1000) {
+        setListCart(data.result)
+      } else {
+      }
+    }).catch((error) => {
+
+    });      
+  
+  }
+  
+  const addToCart = (bookID, quantity) => {
+    const token= getToken();
+    fetch(`${BASE_URL}/cart/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": 'Application/json',
+        Authorization : `Bearer ${token}`
+      }
+      ,body: JSON.stringify({
+        bookId: bookID,
+        quantity: quantity
+      })
+     
+      
+    },
+  ).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    if (data.code === 1000) {
+      getListCart();
+      setIsAddCart(true)
+    } else {
+    }
+  }).catch((error) => {
+
+  });
+  }
+
+  const deleteToCart = (cartItemID) => {
+    const token= getToken();
+    fetch(`${BASE_URL}/cart/delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": 'Application/json',
+        Authorization : `Bearer ${token}`
+      }
+      ,body: JSON.stringify({
+        cartItemID: cartItemID,     
+      }) 
+    },
+  ).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    if (data.code === 1000) {
+      getListCart()
+    } else {
+    }
+  }).catch((error) => {
+
+  });
+  }
+  const updateCartItem = (cartId,quantity) => {
+    const token= getToken();
+    fetch(`${BASE_URL}/cart/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": 'Application/json',
+        Authorization : `Bearer ${token}`
+      }
+      ,body: JSON.stringify({
+        cartId: cartId,  
+        quantity: quantity
+      }) 
+    },
+  ).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    if (data.code === 1000) {
+      getListCart()
+    } else {
+    }
+  }).catch((error) => {
+
+  });
+  }
+  const getAllVoucher = () => {
+    const token= getToken();
+    fetch(`${BASE_URL}/voucher/get-voucher-available`, {
+      method: "GET",
+      headers: {
+        "Content-Type": 'Application/json',
+        Authorization : `Bearer ${token}`
+      }
+    },
+  ).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    if (data.code === 1000) {
+      setListVoucher(data.result)
+    } else {
+    }
+  }).catch((error) => {
+
+  });
+  }
+  const addVoucherToCart = (voucherID) => {
+    const token= getToken();
+    fetch(`${BASE_URL}/voucher/add-voucher`, {
+      method: "POST",
+      headers: {
+        "Content-Type": 'Application/json',
+        Authorization : `Bearer ${token}`
+      },
+      body : JSON.stringify({
+        voucherID : voucherID
+      })
+    },
+  ).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    if (data.code === 1000) {
+      getAllVoucher();
+      getListCart();
+    } else {
+    }
+  }).catch((error) => {
+
+  });
+  }
+
   const value = {
+    getEpubFile,
     validateOtpForgotPassword,
     skipPasswordPrompt,
     sendOTPForgotPassword,
@@ -588,12 +847,31 @@ const refreshToken = () => {
     chooseMethodSendOTP,
     otpForgotPassword,
     resetedPassword,
+    getListBookHome,
     resetPasswordForForgotPassword,
     errorUsernameFGP,
     invalidOtpResetPassword,
     listBookHome,
     setListBookHome,
-    formatNumber
+    formatNumber,
+    memberMapper,
+    listBanner,
+    getListBanner,
+    getDetailBook,
+    searchBook,
+    getAllCateByBookType,
+    getListBookByCateAndBookType,
+    listBookByCateAndBookType,
+    getListCart,
+    listCart,
+    addToCart,
+    isAddCart,
+    setIsAddCart,
+    deleteToCart,
+    updateCartItem,
+    getAllVoucher,
+    listVoucher,
+    addVoucherToCart
   };
 
   return <APIContext.Provider value={value}>{children}</APIContext.Provider>;

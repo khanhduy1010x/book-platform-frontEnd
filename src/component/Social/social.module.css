@@ -1,0 +1,87 @@
+.chat-window {
+    height: 500px; /* Hoáº·c báº¥t ká»³ chiá»u cao nÃ o báº¡n muá»‘n */
+    max-height: 500px; /* Äáº£m báº£o khung khÃ´ng vÆ°á»£t quÃ¡ chiá»u cao nÃ y */
+    overflow-y: auto;
+  }
+  .post-container {
+    position: relative;
+  }
+  
+  .emoji-picker {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    z-index: 10;
+  }
+  .btn-uniform {
+    width: 60px;
+    height: 60px;
+    background-color: #fafafa;
+    border: 2px dotted #00aaff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .btn-uniform:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .btn-uniform i,
+  .btn-uniform span {
+    font-size: 1.5rem; /* TÄƒng kÃ­ch thÆ°á»›c icon hoáº·c text */
+  }
+  .bgg-social {
+    background-color: rgba(127, 212, 138, 0.2);
+  }
+  .yellow { 
+    --fa-primary-color: #fff700;
+     --fa-secondary-color: #fff700
+  }
+  .highest-z-index {
+    z-index: 99999999999 !important;
+  }
+  a {
+    color: #2563eb; /* MÃ u xanh */
+    text-decoration: underline;
+  }
+  a:hover {
+    color: #1d4ed8; /* MÃ u xanh Ä‘áº­m hÆ¡n khi hover */
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 cá»™t Ä‘á»u nhau */
+    gap: 16px; /* Khoáº£ng cÃ¡ch giá»¯a cÃ¡c áº£nh */
+  }
+  .grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cáº¯t hÃ¬nh cho phÃ¹ há»£p */
+    border-radius: 8px; /* GÃ³c bo trÃ²n */
+    aspect-ratio: 1 / 1; /* Äáº£m báº£o áº£nh vuÃ´ng */
+  }
+  /* ToÃ n bá»™ trang */
+  html::-webkit-scrollbar {
+    width: 16px; /* Chiá»u rá»™ng thanh cuá»™n */
+  }
+  
+  /* Track cá»§a scrollbar (Ä‘Æ°á»ng dáº«n) */
+  html::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* MÃ u ná»n */
+  }
+  
+  /* Thumb cá»§a scrollbar (nÃºt kÃ©o) */
+  html::-webkit-scrollbar-thumb {
+    background: url('https://www.pngkey.com/png/full/24-242609_book-icon-biu-tng-quyn-sch.png') no-repeat center center;
+    background-size: contain; /* Thu nhá» hÃ¬nh vá»«a vá»›i nÃºt */
+    border-radius: 8px; /* TÃ¹y chá»‰nh bo trÃ²n */
+  }
+  
+  /* Hover vÃ o scrollbar */
+  html::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.2); /* ThÃªm hiá»‡u á»©ng hover */
+  }
+  

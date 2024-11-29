@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAPI } from "../Service/APIContext";
 import { Link, useNavigate } from "react-router-dom";
 import VoucherModal from "./VoucherModal";
+import emptyCart from "../../assets/image/emptycart.png"
 function formatPrice(price) {
   if(price <0) {
     price = 0
@@ -161,13 +162,25 @@ const Cart = () => {
                     </td>
                   </tr>
                 ))}
+                {  listCart.cartItems.length === 0  &&
+ <tr>
+
+ <td colSpan={6} className="">
+   <div className="flex items-center justify-center">
+   <img src={emptyCart}/>
+   </div>
+
+ </td>
+</tr>
+                }
+               
               </tbody>
             </table>
           </div>
 
         
 
-          {          !(listCart?.cartItems?.length <= 5) &&  
+          {        listCart.cartItems &&  !(listCart?.cartItems?.length <= 5) &&  
       ( <div className="flex justify-center relative text-white py-3"> 
         {
           <span className="cursor-pointer" onClick={() => setIsShowMore(!isShowMore)}>{ isShowMore ? `Hiển thị toàn bộ (Còn ${listCart?.cartItems?.length - 5 } sản phẩm)` : "Thu gọn"}</span> 
@@ -229,7 +242,7 @@ const Cart = () => {
        >Chọn voucher  </button> 
        
              </div>
-          <button disabled={( !listCart && listCart.length === 0)} className="btn btn-primary w-full mt-6 bg-primary text-white py-2 rounded-full"
+          <button disabled={( listCart.cartItems.length === 0 )} className="btn btn-primary disabled:opacity-50 w-full mt-6 bg-primary text-white py-2 rounded-full"
           onClick={handlePaymentCartButton}
           >
             Mua hàng

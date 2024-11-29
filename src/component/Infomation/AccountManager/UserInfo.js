@@ -2,38 +2,74 @@ import { useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import { vi } from "date-fns/locale";
 import Button from "../../Shared/Button/Button";
+import { useAPI } from "../../Service/APIContext";
 export default function UserInfo() {   
+    const {userInfo,editAvatar,editInfor} = useAPI();
     const [isFocusName, setIsFocusName] = useState(true);
     const [selectedDate, setSelectedDate] = useState(null);
-    const [isShowGenderBox, setIsShowGenderBox] = useState(false);
-    const [isSelectGender, setIsSelectGender] = useState("Khác");
-    const genderBoxRef = useRef(null);
-    const [username] = useState("khanhduy1010x");
-    const [userId] = useState("10200210");
-    const [fullName, setFullName] = useState("Nguyễn Khánh Duy");
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (
-          genderBoxRef.current &&
-          !genderBoxRef.current.contains(event.target)
-        ) {
-          setIsShowGenderBox(false);
-        }
-      };
-  
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, []);
+    const [fullName, setFullName] = useState();
+    const inputRef = useRef();
+    const [error, setError] = useState({})
+  useEffect(() => {
+    if(userInfo && userInfo.fullName ) {
+      setFullName(userInfo.fullName)
+    }
+    if(userInfo && userInfo.birth ) {
+      setSelectedDate(userInfo.birth)
+    }
+  },[userInfo])
+    const handleButtonClick = () => {
+      inputRef.current.click();
+    };
+
+    const hanldeEditAvatar = async (e) => {
+      const file = e.target.files[0]; 
+      console.log(file)
+      console.log("heelo")
+
+      if (!file) {
+        return;
+      }
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!validImageTypes.includes(file.type)) {
+        return;
+      }
+    
+      const maxSize = 5 * 1024 * 1024; 
+      if (file.size > maxSize) {
+        return;
+      }
+await editAvatar(file)
+    
+    }
+    const handleEditInfo = async() => { 
+      const regex = /^[a-zA-Z0-9 ]{5,30}$/; 
+      setError({})
+      if (!regex.test(fullName)) {
+        setError({
+          ...error,
+          errorName: "Tên không hợp lệ", 
+      });        return;
+      } 
+      if(selectedDate > new Date()) {
+        setError({
+          ...error,
+          date: "Ngày không hợp lệ ", 
+      });  
+
+      return;
+      }
+       await editInfor(fullName, selectedDate);
+    }
     return (
-        <div className="flex gap-10">
-<div className="flex flex-col gap-4 font-bold mt-6">
+      <div>
+<div className="flex gap-10">
+<div className="flex flex-col flex-1 gap-4 font-bold mt-6">
             <div className="flex relative">
               <input
                 className="px-4 pb-2 pt-5 border flex-1 border-gray-300 rounded-xl bg-[#2a2a2c] text-gray-300"
                 readOnly
-                value={username}
+                defaultValue={userInfo?.username}
               />
               <span className="absolute  text-[12px] left-[15px] text-gray-500 top-1">
                 Tên đăng nhập
@@ -41,7 +77,7 @@ export default function UserInfo() {
             </div>
             <div className="flex relative">
               <input
-                value={userId}
+                defaultValue={userInfo?.accID}
                 readOnly
                 className="px-4 pb-2 border pt-5 flex-1 border-gray-300 rounded-xl  bg-[#2a2a2c] text-gray-300"
               />
@@ -49,7 +85,11 @@ export default function UserInfo() {
                 ID người dùng
               </span>
             </div>
+            {error && error.errorName && (
+                <div className="text-red-500"> {error.errorName} </div>
+              ) }
             <div className="flex relative">
+         
               <input
                 onFocus={() => {
                   setIsFocusName(true);
@@ -60,6 +100,7 @@ export default function UserInfo() {
                   }
                 }}
                 value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 className="px-4 pb-2 border pt-5 flex-1 border-gray-300 rounded-xl bg-[#121214] text-gray-300"
               />
               <span
@@ -72,15 +113,20 @@ export default function UserInfo() {
                 Họ và tên
               </span>
             </div>
-            <div className="flex gap-4">
-              <div className="relative flex-1 flex">
-                <div className="date-picker-container">
+            <div className=" w-full gap-4">
+            {error && error.date && (
+                <div className="text-red-500 mb-4"> {error.date} </div>
+              ) }
+              <div className="relative flex-1 flex border-gray-300  border rounded-xl flex flex-1  bg-[#121214]">
+                
+                <div className="!w-full flex !flex-1">
                   <DatePicker
-                    selected={selectedDate}
+                    selected={ selectedDate}
+                    id="DatePicker"
                     onChange={(date) => setSelectedDate(date)}
                     dateFormat="yyyy/MM/dd"
                     locale={vi}
-                    className="px-4 pb-2  border pt-5 w-full border-gray-300 rounded-xl  bg-[#121214] text-gray-300"
+                    className="px-4 pb-2   pt-5 !w-full rounded-xl flex flex-1  bg-[#121214]  text-gray-300"
                     placeholderText="Chọn ngày"
                     calendarClassName="react-datepicker"
                   />
@@ -88,76 +134,36 @@ export default function UserInfo() {
                 <span className="absolute  text-[12px] left-[15px] text-gray-500 top-1">
                   Ngày sinh
                 </span>
-                <i className="absolute right-10 top-[18px] text-[18px] fa-solid fa-calendar-range"></i>
+                <i className="absolute right-3 top-[18px] text-[18px] fa-solid fa-calendar-range"></i>
               </div>
-              <div
-                className="flex relative flex-1"
-                onClick={() => {
-                  setIsShowGenderBox(!isShowGenderBox);
-                }}
-              >
-                <input
-                  readOnly
-                  value={isSelectGender}
-                  className="px-4 pb-2  border pt-5 w-full border-gray-300 rounded-xl  bg-[#121214] text-gray-300 cursor-pointer"
-                />
-                <span className="absolute  text-[12px] left-[15px] text-gray-500 top-1">
-                  Giới tính
-                </span>
-                <i className="fa-sharp-duotone fa-solid  fa-caret-down absolute right-3 top-4 text-[26px] text-gray-300"></i>
-                {isShowGenderBox && (
-                  <div
-                    className="absolute bg-[#121214] w-full border-gray-300 top-16 border rounded-xl p-2"
-                    ref={genderBoxRef}
-                  >
-                    <div
-                      className={` px-4 py-2 mb-[4px] rounded-xl hover:bg-[#2a2a2c] cursor-pointer ${
-                        isSelectGender === "Nam"
-                          ? "bg-[#2a2a2c] text-primary "
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setIsSelectGender("Nam");
-                      }}
-                    >
-                      Nam
-                    </div>
-                    <div
-                      className={` px-4 py-2 mb-[4px] rounded-xl hover:bg-[#2a2a2c] cursor-pointer ${
-                        isSelectGender === "Nữ"
-                          ? "bg-[#2a2a2c] text-primary "
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setIsSelectGender("Nữ");
-                      }}
-                    >
-                      Nữ
-                    </div>
-                    <div
-                      className={` px-4 py-2 mb-[4px] rounded-xl hover:bg-[#2a2a2c] cursor-pointer ${
-                        isSelectGender === "Khác"
-                          ? "bg-[#2a2a2c] text-primary "
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setIsSelectGender("Khác");
-                      }}
-                    >
-                      Khác
-                    </div>
-                  </div>
-                )}
-              </div>
+           
             </div>
           </div>
 
         <div className="mt-6">
-            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-white border">
-                <img className="" src="https://cdn.vectorstock.com/i/1000v/51/05/male-profile-avatar-with-brown-hair-vector-12055105.jpg"/>
+            <div className="rounded-full overflow-hidden border-white border">
+                <img className="object-cover w-[120px] h-[120px]" src={userInfo?.avatar}/>
             </div>
-            <Button name={"Thay ảnh"} padding={'flex justify-center mt-2 items-center px-1 py-1 text-[18px]'}/>
+            <input type="file" className="hidden" ref={inputRef}
+            onChange={(e) => {
+              hanldeEditAvatar(e);
+            }}
+            ></input>
+            <Button name={"Thay ảnh"} padding={'flex justify-center mt-2 items-center px-1 py-1 text-[18px]'}
+           
+                handleButtonClick={handleButtonClick}
+           />
         </div>
           </div>
+          <div className="flex items-center mt-6">
+
+          <button className="bg-primary rounded-xl px-4 py-2 disabled:opacity-70 "
+          onClick={handleEditInfo}
+          disabled={(fullName === userInfo?.fullName && selectedDate === userInfo?.birth)}
+          >Cập nhật</button>
+
+          </div>
+      </div>
+        
     );
 }

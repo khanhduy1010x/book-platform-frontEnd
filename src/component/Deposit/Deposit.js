@@ -1,5 +1,8 @@
 import qr_bank from '../../assets/image/qr_bank.png'
+import { useAPI } from '../Service/APIContext'
+
 export default function Deposit() {
+    const {userInfo} = useAPI()
     return(
         <div className="min-h-screen bg-[#121214] font-oswald pt-[70px] w-full flex  justify-center pb-[42px]">
             <div className="pt-[42px] inline-flex  flex-col items-center ">
@@ -11,10 +14,10 @@ export default function Deposit() {
                     <div>
                     <div className="text-[#FF0000] text-[22px]">Chú ý: </div>
                     <div  className='mt-6 flex flex-col gap-4'>
-                    <div >-Điền đúng nội dung để được cộng tiền</div>
-                    <div >-Số tiền nạp sẽ là số tiền bạn chuyển khoản</div>
+                    <div >-Điền đúng <span className='text-red-500'>nội dung</span> để được cộng tiền</div>
+                    <div >-Số tiền nạp sẽ là <span className='text-red-500'>số tiền bạn chuyển khoản</span></div>
 
-                    <div>-Tiền sẽ được cộng vào tài khoản trong vòng 2 - 10 phút </div>
+                    <div>-Tiền sẽ được cộng vào tài khoản trong vòng <span className='text-red-500'>2 - 10 phút</span> </div>
                     <div>-Nếu không được cộng tiền vui lòng <span className='text-primary'>liên hệ admin</span></div>
                     <div>-Nếu ghi sai nội dung chuyển khoản khoản vui lòng<span className='text-primary'> liên hệ admin</span> </div>
                     </div>
@@ -52,8 +55,8 @@ export default function Deposit() {
                 </div>
                 <div className='flex-1 flex flex-col items-center justify-center pl-20 pr-20'>
                     <div className='flex items-center justify-center'>
-                    <img  src={qr_bank}
-                    className='h-[250px] w-[250px] rounded-lg'
+                    <img   src={`https://img.vietqr.io/image/mbbank-0848150667-print.png?&addInfo=NapBook%20${userInfo?.accID}&accountName=Nguyen%20Khanh%20Duy`}
+                    className='h-[400px] object-contain w-[400px] rounded-lg'
                     />
                     </div>
                     <div className='text-white mt-4 flex flex-col items-center justify-center'>
@@ -61,7 +64,7 @@ export default function Deposit() {
                             <span>Thông tin chuyển khoản</span>
                         </div>
                         <div className='mt-4'>
-                            <span>Nội dung: NAPBOOK 9999</span>
+                            <span>Nội dung: NapBook {userInfo?.accID}</span>
                         </div>
                         <div>
                             <span>MB BANK: 0848150667</span>

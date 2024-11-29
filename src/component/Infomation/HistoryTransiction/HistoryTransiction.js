@@ -9,12 +9,13 @@ export default function HistoryTransiction() {
           Lịch sử giao dịch
         </h2>
         <div className="flex font-bold text-[18px] gap-10 text-white ">
+        <p className={`${isSelectTab === 'Tất cả' ? 'text-primary' : '' } cursor-pointer`} onClick={() => setIsSelectTab("Tất cả")}>Tất cả</p>
         <p className={`${isSelectTab === 'Mua gói cước' ? 'text-primary' : '' } cursor-pointer`} onClick={() => setIsSelectTab("Mua gói cước")}>Mua gói cước</p>
         <p className={`${isSelectTab === 'Mua nội dung' ? 'text-primary' : '' } cursor-pointer`} onClick={() => setIsSelectTab("Mua nội dung")}>Mua nội dung</p>
-        <p className={`${isSelectTab === 'Mua sò' ? 'text-primary' : '' } cursor-pointer`} onClick={() => setIsSelectTab("Mua sò")}>Mua sò</p>
+        <p className={`${isSelectTab === 'Nạp Tiền' ? 'text-primary' : '' } cursor-pointer`} onClick={() => setIsSelectTab("Nạp Tiền")}>Nạp Tiền</p>
       </div>
       <div>
-        <TransictionTable/>
+        <TransictionTable isSelectTab={isSelectTab}/>
       </div>
         </div>
     )

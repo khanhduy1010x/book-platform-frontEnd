@@ -2,15 +2,18 @@ import Oyster from "../../assets/image/oyter.png";
 import Fish from "../../assets/image/fishicon.png";
 import Button from "../Shared/Button/Button";
 import { useEffect, useState } from "react";
+import { useAPI } from "../Service/APIContext";
+import { Link } from "react-router-dom";
 
 export default function SliderBar({isSelectBar, setIsSelectBar}) {
+  const {userInfo,formatNumber} = useAPI()
   useEffect(() => {
     setIsSelectBar("Quản lí thông tin");
   },[])
   const menuItems = [
     { icon: "fa-solid fa-user", label: "Quản lí thông tin" },
     { icon: "fa-solid fa-user", label: "Tủ sách cá nhân" },
-    { icon: "fa-solid fa-trophy-star", label: "Thành tích" },
+    { icon: "fa-solid fa-trophy-star", label: "Lịch sử mua hàng" },
     { icon: "fa-solid fa-clock-rotate-left", label: "Lịch sử giao dịch" },
     { icon: "fa-solid fa-headset", label: "Hỗ trợ khách hàng" },
   ];
@@ -18,32 +21,32 @@ export default function SliderBar({isSelectBar, setIsSelectBar}) {
     setIsSelectBar(label);
   };
   return (
-    <div className="inline-block w-100 border-r-0.1 border-gray-500 p-2 pt-[24px] pb-[100%] z-1">
+    <div className="inline-block w-100 border-r-0.1 border-gray-500 !font-oswald p-2 pt-[24px] pb-[100%] z-1">
     <div className="inline-block">
       <div className="flex">
         <div className="text-white  mr-3">
-          <h2 className="text-[24px] font-bold font-rubik">Nguyễn Khánh Duy</h2>
+          <h2 className="text-[24px] font-bold font-oswald">{userInfo?.fullName}</h2>
           <div className="flex items-center">
-            <div className="flex items-center">
+            <div className="flex items-center mt-4 mb-2">
               <div className="w-[20px] h-[20px] mt-[2px] flex">
                 <img className="w-100 object-cover" src={Oyster} />
               </div>
-              <div className="mb-[-3px]">
-                <span className="text font-bold text-primary font-rubik ml-2">
-                  999.999đ
+              <div className="mb-[-3px]  flex">
+                <span className="text font-bold text-primary font-oswald ml-2 w-full flex-1">
+                  {formatNumber(userInfo?.amount)}đ
                 </span>
               </div>
             </div>
-            <div className="flex items-center ml-3">
+            {/* <div className="flex items-center ml-3">
               <div className="w-[20px] h-[20px] mt-[2px] flex">
                 <img className="w-100 object-cover" src={Fish} />
               </div>
-              <div className="mb-[-3px]">
-                <span className="text font-bold text-primary font-rubik ml-2">
+              <div className="mb-[-3px] flex">
+                <span className="text font-bold text-primary font-oswald ml-2 w-full flex-1" >
                   999.999đ
                 </span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="w-[60px] h-[60px] rounded-full overflow-hidden">
@@ -53,25 +56,29 @@ export default function SliderBar({isSelectBar, setIsSelectBar}) {
           />
         </div>
       </div>
-      <div className="flex gap-4 mt-4 border-b border-gray-500 pb-8 relative z-1">
+      <div className="flex gap-4 mt-4 w-full border-b border-gray-500 pb-8 relative z-1">
+        <Link to={'/deposit'} className="flex flex-1">
         <Button
-          padding="px-2 py-2 flex justify-center items-center w-full"
+          padding="px-2 py-2 flex justify-center items-center w-full flex-1"
           text="text-[14px]"
           textColor="text-white"
-          name="Nạp sò"
+          name="Nạp tiền"
         />
+        </Link>
+        <Link to={"/member-ship"} className="flex flex-1">
         <Button
-          padding="px-2 py-2 flex justify-center items-center w-full z-1"
+          padding="px-2 py-2 flex justify-center items-center w-full z-1 flex-1"
           text="text-[14px]"
           textColor="text-white"
-          name="Trờ thành hội viên"
+          name="Mua hội viên"
         />
+        </Link>
       </div>
       <div className="mt-4 relative z-1">
       {menuItems.map((item) => (
             <div
               key={item.label}
-              className={`text-white font-rubik font-bold cursor-pointer p-2 rounded-xl pl-4 ${
+              className={`text-white font-oswald font-bold cursor-pointer p-2 rounded-xl pl-4 ${
                 isSelectBar === item.label ? "bg-gray-500 !text-primary" : ""
               }`}
               onClick={() => handleClick(item.label)}

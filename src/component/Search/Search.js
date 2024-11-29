@@ -82,7 +82,7 @@ export default function Search() {
                 <span>Tác giả (322) </span>
             </div>
             <div className="mt-4">
-           <AuthorSlider/>
+           <AuthorSlider search={param}/>
             </div>
            </div>
         </div>

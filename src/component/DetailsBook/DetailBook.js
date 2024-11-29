@@ -2,21 +2,149 @@ import { useEffect, useState } from "react";
 import BookSlider from "../HomeBook/BookSlider";
 import { Link, useParams } from "react-router-dom";
 import { useAPI } from "../Service/APIContext";
+import ReactModal from "./ReactModal";
+import PaymentEbook from "./PaymentEbook";
+import FavoriteNotification from "../Shared/FavoriteNotification";
 
 export default function DetailBook() {
-  const { getDetailBook, memberMapper,formatNumber} = useAPI();
-  const [showMore, setShowMore] = useState(false);
-  const [isComment, setIsComment] = useState(true);
-  const { id } = useParams();
   
-  const [book, setBook] = useState({});
+  const { getDetailBook, memberMapper,formatNumber,addToCart,formatDate,bookDetail,addFavorite,isLogin,setShowModal, setModalStatus,listBookLike} = useAPI();
+  const [showNotification, setShowNotification] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [isComment, setIsComment] = useState(false);
+  const [showRating,setShowRating]=useState(false);
+  const [showPaymentModal , setShowPaymentModal] = useState(false);
+  const [rating, setRating ] = useState(0)
+  const [percent,setPercent] = useState({});
+  const { id } = useParams();
+  const Rate = {
+    ONE_STAR: 1,
+    TWO_STAR: 2,
+    THREE_STAR: 3,
+    FOUR_STAR: 4,
+    FIVE_STAR: 5
+  };
+ 
+  const handleAddToFavorite = async () => {
+    if(!isLogin) {
+      setModalStatus('login');
+      setShowModal(true)
+      return;
+    }
+    setShowNotification(true);
+  await addFavorite(bookDetail?.book.id)
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 4000);
+  };
+  function renderStars(rating) {
+    const fullStars = Math.floor(rating); 
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); 
+  
+    return (
+      <div className="flex items-center">
+        {Array(fullStars)
+          .fill(0)
+          .map((_, index) => (
+            <svg
+              key={`full-${index}`}
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="#FFCC00"
+            >
+              <path d="M12 .587l3.668 7.429L24 9.748l-6 5.847 1.417 8.266L12 18.896l-7.417 3.965L6 15.595 0 9.748l8.332-1.732L12 .587z" />
+            </svg>
+          ))}
+        {halfStar && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="#FFCC00"
+          >
+            <path d="M12 .587l3.668 7.429L24 9.748l-6 5.847 1.417 8.266L12 18.896l-7.417 3.965L6 15.595 0 9.748l8.332-1.732L12 .587z" />
+            <path
+              d="M12 .587L8.332 8.016 0 9.748l6 5.847-1.417 8.266L12 18.896V.587z"
+              fill="#E0E0E0"
+            />
+          </svg>
+        )}
+        {Array(emptyStars)
+          .fill(0)
+          .map((_, index) => (
+            <svg
+              key={`empty-${index}`}
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="#E0E0E0"
+            >
+              <path d="M12 .587l3.668 7.429L24 9.748l-6 5.847 1.417 8.266L12 18.896l-7.417 3.965L6 15.595 0 9.748l8.332-1.732L12 .587z" />
+            </svg>
+          ))}
+      </div>
+    );
+  }
+  
   useEffect(() => {
-    const fetchBookDetails = async () => {
-      const bookData = await getDetailBook(id);
-      setBook(bookData);
-    };
-    fetchBookDetails();
-  }, [id]);
+    setPercent(calculatePercentage(bookDetail?.bookRates)); 
+    setRating(calculateAverageStars(bookDetail?.bookRates));
+  }, [bookDetail]);
+
+function calculatePercentage(bookRates) {
+  if (!bookRates || bookRates.length === 0) {
+    return { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  }
+
+
+  const total = bookRates.length;
+
+  const count = bookRates.reduce((acc, item) => {
+    const rateKey = item.rate; 
+    acc[rateKey] = (acc[rateKey] || 0) + 1; 
+    return acc;
+  }, {});
+
+  const percentages = Object.keys(Rate).reduce((acc, rateKey) => {
+    const stars = Rate[rateKey]; 
+    acc[stars] = ((count[rateKey] || 0) / total) * 100; 
+    return acc;
+  }, {});
+
+  return percentages;
+}
+function calculateAverageStars(bookRates) {
+  if (!bookRates || bookRates.length === 0) {
+    return 0; 
+  }
+
+  const totalStars = bookRates.reduce((sum, item) => {
+    const stars = Rate[item.rate]; 
+    return sum + stars;
+  }, 0);
+
+  const totalRatings = bookRates.length;
+
+  return (totalStars / totalRatings).toFixed(1);
+}
+
+
+  
+  useEffect(() => {
+    if (showRating || showPaymentModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [showRating]);
+ useEffect(() => {
+  getDetailBook(id);
+ },[])
   const StarRating = ({ stars, percentage }) => {
     return (
       <div className="flex items-center space-x-2">
@@ -34,7 +162,13 @@ export default function DetailBook() {
       </div>
     );
   };
-
+  function rateToNumber(rate) {
+    if (Rate[rate] !== undefined) {
+      return Rate[rate];
+    } else {
+      throw new Error(`Invalid rate: ${rate}`);
+    }
+  }
   const Review = ({ avatar, name, date, review, rating }) => {
     return (
       <div className="mt-6 bg-gray-800 p-4 rounded-lg">
@@ -56,7 +190,14 @@ export default function DetailBook() {
     );
   };
   return (
-    <div className="pt-[72px] px-[64px] bg-black w-full">
+    <div className="pt-[72px] px-[64px] bg-black w-full relative">
+{showNotification && (
+  <FavoriteNotification book={bookDetail?.book} showNotification={showNotification} />
+)}
+      {
+        showPaymentModal && <PaymentEbook bookInfo={bookDetail} setShowPaymentModal={setShowPaymentModal}/>
+      }
+      {showRating && isLogin && <ReactModal setShowRating={setShowRating} bookID={id} userComment={bookDetail?.bookRateOfUser} rateToNumber={rateToNumber} id={id}/>}
       <div className="min-h-screen w-full relative pb-[32px]">
         <div className="flex">
           <div className="blur-layer-1 absolute top-[206px] right-1/2 z-0"></div>
@@ -68,7 +209,7 @@ export default function DetailBook() {
                   <div className="pt-[150%] relative rounded-xl overflow-hidden mb-10">
                     <img
                       alt="Nguyện cùng em đi qua gió sương"
-                      src={book?.coverImage}
+                      src={bookDetail?.book?.coverImage}
                       className="absolute top-0 left-0 w-full h-full object-cover"
                     />
                   </div>{" "}
@@ -78,41 +219,17 @@ export default function DetailBook() {
             </div>
             <div className="px-[32px] text-white font-oswald">
               <h2 className="text-white font-bold text-[32px]">
-                {book.bookName}
+                {bookDetail?.book?.bookName}
               </h2>
               <div className="flex mt-4">
                 <div className="flex items-center mr-6 font-bold">
-                  <span className="text-white-50 block mr-1">5.0</span>{" "}
+                  <span className="text-white-50 block mr-1">{rating} </span>{" "}
                   <div className="flex items-center justify-center">
-                    <img
-                      src="https://waka.vn/svgs/icon-star.svg"
-                      alt="icon-star"
-                      className="cursor-pointer w-4 h-6"
-                    />
-                    <img
-                      src="https://waka.vn/svgs/icon-star.svg"
-                      alt="icon-star"
-                      className="cursor-pointer w-4 h-6"
-                    />
-                    <img
-                      src="https://waka.vn/svgs/icon-star.svg"
-                      alt="icon-star"
-                      className="cursor-pointer w-4 h-6"
-                    />
-                    <img
-                      src="https://waka.vn/svgs/icon-star.svg"
-                      alt="icon-star"
-                      className="cursor-pointer w-4 h-6"
-                    />
-                    <img
-                      src="https://waka.vn/svgs/icon-star.svg"
-                      alt="icon-star"
-                      className="cursor-pointer w-4 h-6"
-                    />{" "}
+                  {renderStars(rating)}
                   </div>
                 </div>{" "}
                 <p className="text-white-50">
-                  <span className="text-white-400">・</span>8 đánh giá
+                  <span className="text-white-400">・</span>{bookDetail?.bookRates?.length} đánh giá
                 </p>
               </div>
               <div className="font-rubik">
@@ -139,7 +256,7 @@ export default function DetailBook() {
                     <p className="text-gray-400 text-16-16">Tác giả</p>{" "}
                     <a href="/author/nardia-le-rXL1" className="">
                       <p className="text-white-500 font-bold text-[16px] cursor-pointer mt-[2px]">
-                        {book?.author?.name}
+                        {bookDetail?.book?.author?.name}
                       </p>
                     </a>{" "}
                   </div>{" "}
@@ -150,29 +267,29 @@ export default function DetailBook() {
                       className="max-w-[230px] block"
                     >
                       <p className="text-white-50 text-16-16 cursor-pointer font-bold">
-                        {book?.category?.cateName}
+                        {bookDetail?.book?.category?.cateName}
                       </p>
                     </a>
                   </div>{" "}
                   <div className="mt-[16px]">
                     <p className="text-gray-400 text-16-16">Kiểu sách</p>{" "}
                     <p className="text-white-50 text-[16px] font-bold">
-                     {book.bookType === "EBOOK" ? "Sách điện tử" : "Sách giấy"}
+                     {bookDetail?.book?.bookType === "EBOOK" ? "Sách điện tử" : "Sách giấy"}
                     </p>
                   </div>{" "}
-                  {book?.memberType != "NONE" && book?.bookType === "EBOOK" && (
+                  {bookDetail?.book?.memberType != "NONE" && bookDetail?.bookType === "EBOOK" && (
                     <div className="mt-[16px]">
                       <p className="text-gray-400 text-16-16 ">Gói cước</p>{" "}
                       <p className="text-white-50 text-16-16 font-bold">
-                        {memberMapper(`${book?.memberType}`)}
+                        {memberMapper(`${bookDetail?.book?.memberType}`)}
                       </p>
                     </div>
                   )}
-                      {book?.memberType === "NONE" && (
+                      {bookDetail?.book?.memberType === "NONE" && (
                     <div className="mt-[16px]">
-                      <p className="text-gray-400 text-16-16 ">{book.bookType === "EBOOK" ? "Giá đọc sách" : "Giá mua sách"}</p>{" "}
+                      <p className="text-gray-400 text-16-16 ">{bookDetail?.book?.bookType === "EBOOK" ? "Giá đọc sách" : "Giá mua sách"}</p>{" "}
                       <p className="text-white-50 text-16-16 font-bold">
-                        {book.price > 0 ? formatNumber(book.price) + "đ" : "Miễn phí" }
+                        {bookDetail?.book?.price > 0 ? formatNumber(bookDetail?.book?.price) + "đ" : "Miễn phí" }
                       </p>
                     </div>
                   )}
@@ -182,22 +299,47 @@ export default function DetailBook() {
                 <div className="border-[1px] mt-[24px] border-gray-400 "></div>
               </div>
               <div className="flex justify-around">
-            {book.bookType === "EBOOK" ?  ( 
+            {bookDetail?.book?.bookType === "EBOOK" ?  ( 
 
 <Link
-to={`/epubread/${book.id}`}
+to={`/epubread/${bookDetail?.book?.id}`}
 className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer">
 <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
 <span>Đọc sách</span>
 </Link>
             ) : 
-            <div className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer">
+            <div onClick={()=>addToCart(id,1)} className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer">
             <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
             <span>Thêm vào giỏ hàng</span>
           </div>}
+          {
+            bookDetail?.book?.bookType === "EBOOK" &&  bookDetail?.book?.price > 0 && (
+              <div
+              onClick={(e) =>
+              {
+                if(bookDetail?.owned) {
+                  return;
+                }
+                if(!isLogin) {
+                  setModalStatus('login');
+                  setShowModal(true)
+                  return;
+                }
+                setShowPaymentModal(true)
+              }
+               }
+              className={`${bookDetail?.owned ?  "pointer-events-none	opacity-70 cursor-default" : ""} bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer`}>
+              <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
+              <span>{bookDetail?.owned ? "Đã sở hữu" : "Mua Nội Dung" }</span>
+            </div>
+            )
+
+          }
                
             
-                <div className="flex justify-center mt-[16px] items-center cursor-pointer ">
+                <div className="flex justify-center mt-[16px] items-center cursor-pointer " 
+                onClick={handleAddToFavorite}
+                >
                   <i className="fa-regular fa-heart-circle-plus text-[32px] bg-gray-500 p-2 rounded-full hover:text-primary  hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200"></i>
                 </div>
                 <div className="flex justify-center mt-[16px] items-center cursor-pointer ">
@@ -242,7 +384,7 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                 className={`w-[420px] mt-4${showMore ? "" : " line-clamp-3"}`}
               >
                
-               {book?.description}
+               {bookDetail?.book?.description}
               </div>
               <span
                 className="text-primary cursor-pointer"
@@ -257,16 +399,7 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
               <div className="p-4 bg-gray-900 rounded-lg mt-2 w-[550px]">
                 <div>
                   <div className="flex space-x-4 text-green-400 mb-4">
-                    <button
-                      className={`${
-                        isComment
-                          ? "border-b-2 border-primary"
-                          : "text-gray-400"
-                      }`}
-                      onClick={() => setIsComment(!isComment)}
-                    >
-                      Bình luận (5)
-                    </button>
+                
                     <button
                       className={`${
                         !isComment
@@ -275,103 +408,59 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                       }`}
                       onClick={() => setIsComment(!isComment)}
                     >
-                      Đánh giá & nhận xét (1)
+                      Đánh giá & nhận xét ({bookDetail?.bookRates?.length})
                     </button>
                   </div>
-                  {isComment ? (
-                    <>
-                      <div className="space-y-4">
-                        <div className="bg-gray-800 p-4 rounded-lg flex space-x-4">
-                          <img
-                            src="https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg"
-                            alt="Avatar"
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <span className="text-white font-bold">
-                                chikt***
-                              </span>
-                              <span className="text-gray-400 text-sm ml-3">
-                                2 tuần trước
-                              </span>
-                            </div>
-                            <p className="text-gray-300">
-                              Tình cảm cũng bị mù. Chắc phải bỏ ngang quá!
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-800 p-4 rounded-lg flex space-x-4">
-                          <img
-                            src="https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg"
-                            alt="Avatar"
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <span className="text-white font-bold">
-                                chikt***
-                              </span>
-                              <span className="text-gray-400 text-sm ml-3">
-                                2 tuần trước
-                              </span>
-                            </div>
-                            <p className="text-gray-300">
-                              Tình cảm cũng bị mù. Chắc phải bỏ ngang quá!
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-800 p-4 rounded-lg flex space-x-4">
-                          <img
-                            src="https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg"
-                            alt="Avatar"
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <span className="text-white font-bold">
-                                chikt***
-                              </span>
-                              <span className="text-gray-400 text-sm ml-3">
-                                2 tuần trước
-                              </span>
-                            </div>
-                            <p className="text-gray-300">
-                              Tình cảm cũng bị mù. Chắc phải bỏ ngang quá!
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <button className="mt-4 text-center bg-gray-700 text-white py-2 px-6 rounded-lg">
-                          Xem thêm
-                        </button>
-                      </div>
-                    </>
-                  ) : (
+                 
                     <>
                       <div className="p-4 bg-gray-900 rounded-lg">
                         <div className="flex items-center space-x-4 mb-4">
-                          <div className="text-white text-5xl font-bold">
-                            3.0
+                          <div className="text-white flex items-center text-5xl gap-4  font-bold">
+                           <div className=""> {rating} </div>   
+                          <div>
+                          <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="35"
+                    height="35"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M9.15316 5.40838C10.4198 3.13613 11.0531 2 12 2C12.9469 2 13.5802 3.13612 14.8468 5.40837L15.1745 5.99623C15.5345 6.64193 15.7144 6.96479 15.9951 7.17781C16.2757 7.39083 16.6251 7.4699 17.3241 7.62805L17.9605 7.77203C20.4201 8.32856 21.65 8.60682 21.9426 9.54773C22.2352 10.4886 21.3968 11.4691 19.7199 13.4299L19.2861 13.9372C18.8096 14.4944 18.5713 14.773 18.4641 15.1177C18.357 15.4624 18.393 15.8341 18.465 16.5776L18.5306 17.2544C18.7841 19.8706 18.9109 21.1787 18.1449 21.7602C17.3788 22.3417 16.2273 21.8115 13.9243 20.7512L13.3285 20.4768C12.6741 20.1755 12.3469 20.0248 12 20.0248C11.6531 20.0248 11.3259 20.1755 10.6715 20.4768L10.0757 20.7512C7.77268 21.8115 6.62118 22.3417 5.85515 21.7602C5.08912 21.1787 5.21588 19.8706 5.4694 17.2544L5.53498 16.5776C5.60703 15.8341 5.64305 15.4624 5.53586 15.1177C5.42868 14.773 5.19043 14.4944 4.71392 13.9372L4.2801 13.4299C2.60325 11.4691 1.76482 10.4886 2.05742 9.54773C2.35002 8.60682 3.57986 8.32856 6.03954 7.77203L6.67589 7.62805C7.37485 7.4699 7.72433 7.39083 8.00494 7.17781C8.28555 6.96479 8.46553 6.64194 8.82547 5.99623L9.15316 5.40838Z"
+                      fill="#FFCC00"
+                    />
+                  </svg>
+                            </div> 
+                            <div className="flex items-center">
+                            <span className="text-gray-400 text-[14px]">{bookDetail?.bookRates?.length} đánh giá</span>
+                            </div>
                           </div>
                           <div>
-                            <span className="text-gray-400">1 đánh giá</span>
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <StarRating stars={5} percentage={0} />
-                          <StarRating stars={4} percentage={0} />
-                          <StarRating stars={3} percentage={100} />
-                          <StarRating stars={2} percentage={0} />
-                          <StarRating stars={1} percentage={0} />
+                        {Object.keys(percent)
+        .sort((a, b) => b - a) 
+        .map((stars) => (
+          <StarRating
+            key={stars}
+            stars={parseInt(stars)} 
+            percentage={percent[stars]}
+          />
+        ))}
                         </div>
 
-                        <div className="mt-4">
-                          <button className="flex items-center space-x-2 bg-green-500 text-white py-2 px-4 rounded-lg">
+                        <div className="mt-4 flex items-center justify-center">
+                          <button className="flex items-center space-x-2 bg-green-500 text-white py-2 px-4 rounded-lg"
+                          onClick={() => {
+                            if(!isLogin) {
+                              setModalStatus('login');
+                              setShowModal(true)
+                              return;
+                            }
+                            setShowRating(true)}}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               className="h-5 w-5"
@@ -380,20 +469,24 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                             >
                               <path d="M17.211 2.789a2.996 2.996 0 00-4.242 0L2.586 13.172a1 1 0 00-.293.707V17a1 1 0 001 1h3.121a1 1 0 00.707-.293l10.383-10.383a2.996 2.996 0 000-4.242zM13.5 3.5a1 1 0 011.415 0l1.086 1.086a1 1 0 010 1.415l-1.793 1.793-2.5-2.5 1.793-1.793a1 1 0 011.415 0zM5.793 14.5H5v-.793l6.793-6.793 2.5 2.5-6.793 6.793z" />
                             </svg>
-                            <span>Viết đánh giá</span>
+                            <span>{bookDetail?.bookRateOfUser ? "Sửa đánh giá" : "Viết đánh giá"} </span>
                           </button>
                         </div>
-
-                        <Review
-                          avatar="https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg"
-                          name="Trần Hồng Anh"
-                          date="08/09/2024"
-                          review="N9 là đội trưởng đội CSHS cơ mà nhỉ, sao cv cũng k ổn mấy mà tc cũng…thế"
-                          rating={3}
-                        />
+                        {
+                          bookDetail?.bookRates?.map((item,index) => (
+                            <Review
+                            avatar={item?.account.avatar}
+                            name={item?.account.fullName}
+                            date={formatDate(item?.date)}
+                            review={item?.comment}
+                            rating={rateToNumber(item?.rate)}
+                          />
+                          ))
+                        }
+                      
                       </div>
                     </>
-                  )}
+         
                 </div>
               </div>
             </div>
@@ -402,8 +495,8 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
         <div className="text-[24px] font-bold ml-2 mt-4 text-white">
           Có thể bạn thích
         </div>
-        {/* <BookSlider/> */}
-      </div>
+{ listBookLike &&        <BookSlider listBook={listBookLike}/>}
+     </div>
     </div>
   );
 }

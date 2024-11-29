@@ -4,6 +4,32 @@ module.exports = {
   mode: 'jit',
   theme: {
     extend: {
+      maxHeight: {
+        'calc-30px': 'calc(100vh - 30px)',
+      },
+      maxWidth: {
+        'calc-80px': 'calc(100vw - 100px)',
+      },
+      width: {
+        'calc-80px': 'calc(100vw - 330px)',
+
+      },
+      animation: {
+        blink: "blink 2s infinite", 
+      },
+      keyframes: {
+        blink: {
+          "0%": {
+            opacity: "1", 
+          },
+          "50%": {
+            opacity: "0.1", 
+          },
+          "100%": {
+            opacity: "1", 
+          },
+        },
+      },
       transitionProperty: {
         width: "width"
       },
@@ -26,11 +52,14 @@ module.exports = {
         '90': '0.9', 
       },
       colors: {
+        orange: {
+          500: '#f97316', 
+        },
         'custom-white': 'rgba(255, 255, 255, 0.9)',
         'black-rgb': 'rgba(18, 18, 20, 0.9)',
         primary: {
           DEFAULT: "#00cec8",
-          light: "#3B82F6",
+           light: "#3B82F6",
           dark: "#1E40AF",
         },
       },
@@ -48,6 +77,7 @@ module.exports = {
         "background-white": "hsla(0, 0%, 100%, 0.1);",
       },
       backgroundImage: {
+        'slider-track': `linear-gradient(to right, var(--progress-color, #00cec8) 0%, var(--progress-color, #00cec8) var(--slider-progress, 50%), var(--remaining-color, #808080) var(--slider-progress, 50%), var(--remaining-color, #808080) 100%)`,
         'home-banner': 'linear-gradient(180deg, rgba(18, 18, 20, 0), #121214)',
         'red-to-pink': 'linear-gradient(180deg, #ff0000, #ff69b4)',  ////// tra phi
 'orange-to-yellow': 'linear-gradient(45deg, #FFA500, #FFD700)', ///// thanh vien

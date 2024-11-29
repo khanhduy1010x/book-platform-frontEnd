@@ -258,3 +258,26 @@ body {
 
 }
 
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#iframe-overlay {
+  pointer-events: none;
+}
+.no-select {
+  user-select: none; /* Ngăn chọn văn bản */
+  -webkit-user-select: none; /* Hỗ trợ cho Safari */
+  -ms-user-select: none; /* Hỗ trợ cho IE */
+}
+.bg-ss {
+  background-color: #113004;
+}
+/**/

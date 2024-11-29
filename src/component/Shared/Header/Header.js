@@ -19,6 +19,7 @@ export default function Header() {
   const [searchInput, setSearchInput] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentURL, setCurrentURL] = useState("");
+
   const location = useLocation();
   const navigate = useNavigate();
   const [listCateEbook, setListCateEbook] = useState([]);
@@ -89,6 +90,14 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchInput]);
+  const handleCheckLogin = () => {
+    if(!isLogin) {
+      setModalStatus('login')
+      setShowModal(true);
+      return false;
+    }
+    return true;
+  }
   return (
     <>
       {showModal && (
@@ -138,44 +147,54 @@ export default function Header() {
               </Link>
               <div className="flex flex-1 gap-x-6 flex-wrap items-center font-oswald">
                 <div className="relative group">
-                  <a
-                    href="/ebook"
+                  <Link 
+                    to={'/type/EBOOK'}
                     className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
                   >
                     Sách điện tử
-                  </a>
+                  </Link>
                   <CategoryHoverDialog title={"Sách điện tử"} listCate={listCateEbook}/>
                 </div>
             
                 <div className="relative group">
-                  <a
-                    href="/hieu-soi"
+                  <Link
+                     to={'/type/PAPERBACK'}
                     className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
                   >
                     Sách giấy
-                  </a>
+                  </Link>
                   <CategoryHoverDialog title={"Sách giấy"} listCate={listCatePaperPack}/>
                 </div>
                 <div className="relative group">
-                  <a
-                    href="/sach-giay"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
+                  <div
+className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
+onClick={() => {
+if(handleCheckLogin()) {
+navigate('/deposit')
+}
+}}
                   >
                     Nạp Tiền
-                  </a>
+                  </div>
                 </div>
-                <a
-                  href="/sach-tom-tat"
-                  className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
+                <Link
+              to={"/social"}
+className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
                 >
-                  Podcast
-                </a>
-                <a
-                  href="/podcast"
+                Diễn Đàng 
+                </Link>
+                <Link
+                  to="/mini-game"
                   className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
                 >
                   Mini Game
-                </a>
+                </Link>
+            {isLogin && userInfo && userInfo.role === "ADMIN" &&    <Link
+                  to="/admin"
+                  className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
+                >
+                  Admin Page
+                </Link>}
               </div>
             </div>
 
@@ -216,10 +235,9 @@ export default function Header() {
                     }}
                   ></i>
                 </div>
-              </div>
-
-              <a
-                href="/package-plan"
+              </div>  
+              <Link
+                to="/member-ship"
                 className="cursor-pointer bg-package border border-[#FC0] w-[93px] h-[32px]  rounded-2xl px-2.5 py-[5.25px] bg-[rgba(255,204,0,0.16)] min-w-[92px] flex items-center"
               >
                 <img
@@ -230,19 +248,25 @@ export default function Header() {
                 <span className="text-[13px] font-bold text-nowrap text-yellow-500 pl-2">
                   Gói VIP
                 </span>
-              </a>
-              <div className="relative group cursor-pointer">
-                <div className="absolute w-[14px] h-[14px] z-20 -right-2 -top-0.5 bg-red-500  text-[10px] font-bold flex text-white justify-center items-center rounded-full ">
-                  2
-                </div>
+              </Link>
+             {
+              isLogin && ( <div className="relative group cursor-pointer">
                 <i className="fa-solid fa-bell text-primary z-10 relative"></i>
                 <NotificationDialog />
-              </div>
-              <div className="relative w-100 group cursor-pointer"><Link to="/cart"><i className="fa-duotone cursor-pointer fa-solid fa-cart-shopping  text-primary text-[22px] font-bold"></i></Link>
-              <div className={`absolute -right-5  group-hover:block hidden ${isAddCart ?  '!block' : ""}`}>
-                      <MiniCart isAddCart={isAddCart}/>
-              </div>
-              </div>
+              </div>)
+             }
+              {
+                    isLogin  &&     <div className="relative w-100 group cursor-pointer">
+                
+                    <Link to="/cart" 
+                
+                  ><i className="fa-duotone cursor-pointer fa-solid fa-cart-shopping  text-primary text-[22px] font-bold"></i></Link>
+                  <div className={`absolute -right-5  group-hover:block hidden ${isAddCart ?  '!block' : ""}`}>
+                          <MiniCart isAddCart={isAddCart}/>
+                  </div>
+                  </div>
+              }
+          
 
               <div className="flex items-center group relative gap-2 h-[42px]">
                 {!isLogin ? (
@@ -297,12 +321,12 @@ export default function Header() {
                         </div>
                       </div>
                       <div className="mt-3 px-5">
-                        <div className="px-2 py-1 bg-primary w-full rounded-full font-bold text-white cursor-pointer">
+                        <Link to={'/member-ship'} className="px-2 py-1 bg-primary w-full rounded-full border-[2px] border-yellow-500 font-bold text-white cursor-pointer">
                           Trở thành hội viên
-                        </div>
+                        </Link>
                       </div>
                       <div className="mt-2">
-                        <div className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
+                        <Link  to="/info" className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
                           <div className="w-6 h-6">
                             <img
                               src="https://waka.vn/svgs/icon-account.svg"
@@ -310,26 +334,34 @@ export default function Header() {
                               className="cursor-pointer"
                             />
                           </div>{" "}
-                          <Link to="/info" className=" text-[15px] text-white font-bold ">
+                          <div  className=" text-[15px] text-white font-bold ">
                             Quản lý tài khoản
-                          </Link>
-                        </div>
-                        <div className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
+                          </div>
+                        </Link>
+                        <Link to="/info/trans-history" className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
                           <div className="w-6 h-6">
                             <i className="fa-duotone fa-solid fa-clock-rotate-left text-white"></i>{" "}
                           </div>{" "}
                           <p className=" text-[15px] text-white font-bold ">
                             Lịch sử giao dịch
                           </p>
-                        </div>
-                        <div className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
+                        </Link>
+                        <Link to="/info/book-shelf" className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
                           <div className="w-6 h-6">
                             <i className="fa-solid fa-cabinet-filing text-white"></i>{" "}
                           </div>{" "}
                           <p className=" text-[15px] text-white font-bold ">
                             Tủ sách cá nhân
                           </p>
-                        </div>
+                        </Link>
+                        <Link to="/info/order-history" className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
+                          <div className="w-6 h-6">
+                            <i className="fa-solid fa-box text-white"></i>{" "}
+                          </div>{" "}
+                          <p className=" text-[15px] text-white font-bold ">
+                            Lịch sử mua hàng
+                          </p>
+                        </Link>
                         <div onClick={() =>handleLogOutSubmit()} className="flex p-2 items-center gap-3 hover:bg-background-white rounded-xl cursor-pointer d-block">
                           <div className="w-6 h-6">
                             <i className="fa-duotone text-white fa-solid fa-right-from-bracket"></i>

@@ -10,7 +10,7 @@ export default function SlidebarReading({toc,goToChapter,currentChapter,showSlid
       }
     }, [currentChapter]); 
     return (
-        <div className="">
+        <div className="font-oswald">
             {showSlideBar ?  <div className={`h-[calc(100vh-70px)] transition-transform duration-300 ease-in-out transform ${showSlideBar ? "translate-x-0" : "-translate-x-full"} bg-[#29292b] inline-block px-4 max-w-[400px] flex flex-col pb-8 overflow-hidden`}>
                 <div className="pb-4">
             <div className="flex border-b border-gray-500 pt-4 pb-4">

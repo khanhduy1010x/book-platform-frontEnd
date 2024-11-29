@@ -29,6 +29,11 @@ export default function LoginDialog({ setModalStatus}) {
                       <p className="text-red-500">Tài khoản hoặc số điện thoại không đúng</p>
                     )
                   }
+                   {
+                    error.isBanned && (
+                      <p className="text-red-500">Tài khoản đã bị cấm. Vui lòng liên hệ admin</p>
+                    )
+                  }
                   {
                     success.successRegistered && (
                       <p className="text-primary">Đăng kí thành công vui lòng đăng nhập</p>

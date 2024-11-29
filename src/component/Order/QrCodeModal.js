@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
 import Loading from "../../assets/image/loading.gif";
-
-export function QrCodeModal() {
+import { useAPI } from "../Service/APIContext";
+import successGIF from '../../assets/image/successQR.gif'
+import { Link } from "react-router-dom";
+export function QrCodeModal({qrCode}) {
 
   const [showQrCode, setShowQrCode] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(false);
-  const [qrPayment, setQrPayment] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/800px-QR_code_for_mobile_English_Wikipedia.svg.png");
+  const [qrPayment, setQrPayment] = useState(qrCode);
   const [loadingQR, setLoadingQR] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(600);
-
-
+  const [timeLeft, setTimeLeft] = useState(900);
+  const {checkQROrder,isCompleteQROrder} = useAPI()
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
-
+  useEffect(() => {
+    return () => {
+        clearInterval(checkQROrder.intervalId); 
+    };
+}, []);
 
   const cancelTransaction = () => {
     console.log("Transaction canceled");
@@ -30,6 +35,7 @@ export function QrCodeModal() {
         setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
     } else if (timeLeft === 0) {
+      clearInterval(checkQROrder.intervalId); 
       cancelTransaction();
     }
     return () => clearInterval(timer);
@@ -49,22 +55,22 @@ export function QrCodeModal() {
       {showQrCode && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
           <div className="relative w-full max-w-md bg-white rounded-lg shadow-lg">
-            {paymentStatus ? (
-              <div className="p-8 text-center">
-                <div className="bg-cover bg-center h-64 w-full rounded-t-lg mb-6" style={{ backgroundImage: "url('../img/successPayment.gif')" }}></div>
-                <h2 className="text-2xl font-bold text-blue-500 mb-4">Thanh Toán Thành Công</h2>
-                <div className="flex justify-center items-center text-pink-500 text-2xl mb-4 space-x-4">
+            {isCompleteQROrder ? (
+              <div className="p-8 text-center flex justify-center items-center flex-col">
+                <div className="bg-contain bg-center h-64 w-64 rounded-full mb-6" style={{ backgroundImage: `url(${successGIF})` }}></div>
+                <h2 className="text-2xl font-bold text-primary mb-4">Thanh Toán Thành Công</h2>
+                <div className="flex justify-center items-center text-primary text-2xl mb-4 space-x-4">
                   <i className="fas fa-smile-beam"></i>
                   <i className="fas fa-smile-beam"></i>
                   <i className="fas fa-smile-beam"></i>
                 </div>
                 <p className="text-gray-700 mb-6">Cảm ơn bạn đã đặt hàng tại trang web của chúng tôi! Bạn sẽ nhận được hàng trong thời gian sớm nhất.</p>
-                <button className="w-full py-2 mb-4 bg-teal-500 text-white rounded-full font-semibold uppercase">
+                <Link to="/info/order-history" className="w-full py-2 mb-4 bg-teal-500 text-white rounded-full font-semibold uppercase">
                   Xem đơn hàng
-                </button>
-                <button onClick={() => setShowQrCode(false)} className="w-full py-2 bg-gray-700 text-white rounded-full font-semibold uppercase">
+                </Link>
+                <Link to="/" onClick={() => setShowQrCode(false)} className="w-full py-2 bg-gray-700 text-white rounded-full font-semibold uppercase">
                   Về trang chủ
-                </button>
+                </Link>
               </div>
             ) : (
               <div className="p-6">
@@ -77,7 +83,7 @@ export function QrCodeModal() {
                 <h3 className="text-xl font-semibold text-center mb-4">Quét mã bên dưới</h3>
                 <div className="flex justify-center mb-4">
                   <img
-                    className="w-64 h-64"
+                    className="w-[500px] h-[500px]"
                     src={loadingQR ? Loading : qrPayment}
                     alt="QR Code"
                   />
@@ -89,7 +95,7 @@ export function QrCodeModal() {
                   </span>
                 </div>
                 <p className="text-sm text-center text-red-600">
-                  Lưu ý: Trong thời gian thanh toán vui lòng không đóng trình duyệt và không thay đổi nội dung chuyển khoản.
+                  Lưu ý: Trong thời gian thanh toán vui lòng  <span className="text-[18px] font-bold">không đóng trình duyệt</span> và <span className="text-[18px] font-bold">không thay đổi nội dung chuyển khoản</span>.
                 </p>
               </div>
             )}

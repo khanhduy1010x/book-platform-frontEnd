@@ -17,7 +17,7 @@ export default function InfoPage() {
   const [orderDetail, setOrderDetail] = useState();
   const location = useLocation();
   useEffect(() => {
-    if(location.pathname === "/info/order-history") {
+    if(location.pathname.includes("/info/order-history")) {
       setIsSelectBar("Lịch sử mua hàng");
     }
     else if (location.pathname === "/info/book-shelf") {
@@ -25,10 +25,6 @@ export default function InfoPage() {
 
     }else if ( location.pathname === "/info/trans-history") { 
       setIsSelectBar("Lịch sử giao dịch");
-
-    }
-    else if ( location.pathname === "/info/order-history") { 
-      setIsSelectBar("Lịch sử mua hàng");
 
     }
     const fetchApi = async () => {
@@ -52,12 +48,12 @@ export default function InfoPage() {
     fetchApi();
   },[location.pathname])
   return (
-    <div className="pt-[72px] bg-black px-[62px] relative min-h-screen !font-oswald overflow-hidden">
+    <div className="pt-[72px] bg-black px-3 sm:px-6 md:px-[62px] relative min-h-screen !font-oswald overflow-hidden">
       <div className="blur-layer-1 absolute top-[206px] !bg-blur-bg-primary right-1/2 z-0"></div>
       <div className="blur-layer-1 absolute top-[300px] left-[900px] !bg-blur-bg-primary right-1/2 z-0"></div>
 
-      <div className="mt-[32px] flex">
-        <div className="min-w-[330px] sticky top-[100px]">
+      <div className="mt-[32px] flex flex-col md:flex-row relative z-[1]">
+        <div className="w-full md:min-w-[370px] md:max-w-[370px] md:sticky md:top-[100px] md:self-start">
           <SliderBar isSelectBar={isSelectBar} setIsSelectBar={setIsSelectBar}/>
         </div>
         <div className="flex-1">

@@ -3,6 +3,7 @@ import { useAPI } from "../../Service/APIContext";
 export default function RegisterDialog({ setModalStatus }) {
   const {
     sendSMSOTPReg,
+    registerAccount,
     error,
     setError,
     success,
@@ -145,11 +146,7 @@ export default function RegisterDialog({ setModalStatus }) {
   
     if (!isValid) return;
   
-    sendSMSOTPReg(accountCreatRequest.phone);
-  
-    if (success.sendRegOTP === true) {
-      setModalStatus("otp");
-    }
+    registerAccount();
   };
   return (
     <div>

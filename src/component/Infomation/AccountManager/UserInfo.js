@@ -3,6 +3,7 @@ import DatePicker from "react-datepicker";
 import { vi } from "date-fns/locale";
 import Button from "../../Shared/Button/Button";
 import { useAPI } from "../../Service/APIContext";
+import AvatarComponent from "../../Shared/Helper/AvatarComponent";
 export default function UserInfo() {   
     const {userInfo,editAvatar,editInfor} = useAPI();
     const [isFocusName, setIsFocusName] = useState(true);
@@ -43,27 +44,31 @@ await editAvatar(file)
     
     }
     const handleEditInfo = async() => { 
-      const regex = /^[a-zA-Z0-9 ]{5,30}$/; 
+      const regex = /^[\p{L} ]{2,50}$/u; 
       setError({})
-      if (!regex.test(fullName)) {
-        setError({
-          ...error,
-          errorName: "Tên không hợp lệ", 
-      });        return;
-      } 
-      if(selectedDate > new Date()) {
-        setError({
-          ...error,
-          date: "Ngày không hợp lệ ", 
-      });  
+      let hasError = false;
+      const newError = {};
 
-      return;
+      if (!fullName || !regex.test(fullName.trim())) {
+        newError.errorName = "Tên không hợp lệ (2-50 ký tự, không chứa số hoặc ký tự đặc biệt)";
+        hasError = true;
       }
-       await editInfor(fullName, selectedDate);
+      if (!selectedDate) {
+        newError.date = "Vui lòng chọn ngày sinh";
+        hasError = true;
+      } else if (selectedDate > new Date()) {
+        newError.date = "Ngày sinh không hợp lệ";
+        hasError = true;
+      }
+      if (hasError) {
+        setError(newError);
+        return;
+      }
+      await editInfor(fullName, selectedDate);
     }
     return (
       <div>
-<div className="flex gap-10">
+<div className="flex flex-col-reverse md:flex-row gap-6 md:gap-10">
 <div className="flex flex-col flex-1 gap-4 font-bold mt-6">
             <div className="flex relative">
               <input
@@ -140,9 +145,9 @@ await editAvatar(file)
             </div>
           </div>
 
-        <div className="mt-6">
-            <div className="rounded-full overflow-hidden border-white border">
-                <img className="object-cover w-[120px] h-[120px]" src={userInfo?.avatar}/>
+        <div className="mt-6 flex flex-col items-center">
+            <div className="rounded-full overflow-hidden border-white border w-[120px] h-[120px]">
+                <AvatarComponent avatar={userInfo?.avatar} css={"w-full h-full object-cover"} />
             </div>
             <input type="file" className="hidden" ref={inputRef}
             onChange={(e) => {

@@ -23,19 +23,14 @@ export default function CategoryHoverDialog({ title, items,listCate,listBookByCa
                         >
                           {listCate && listCate.map((item,index) => (
   <Link
-  to={`/type/${title === "Sách điện tử" ? 'EBOOK' : 'PAPERBACK'}/${item.id}`}
-  key={index}
-  className="rounded-xl flex justify-center hover:bg-background-white py-2 px-3 cursor-pointer"
->
-  <p
-    className="font-normal"
-    style={{ fontSize: "15px" }}
+    to={`/type/${title === "Sách điện tử" ? 'EBOOK' : 'PAPERBACK'}/${item.id}`}
+    key={index}
+    className="rounded-xl hover:bg-background-white py-2 px-3 cursor-pointer"
   >
-{
-  item.cateName
-}  </p>
-</Link>
-
+    <p className="font-normal truncate" style={{ fontSize: "15px" }}>
+      {item.cateName}
+    </p>
+  </Link>
                           ))}
                         
                          

@@ -94,131 +94,92 @@ export default function TransictionTable({isSelectTab}) {
   },[isSelectTab])
 
   return (
-    <div className=" max-w-screen mt-4 rounded-xl overflow-hidden font-oswald">
+    <div className="max-w-screen mt-4 font-oswald">
       <div className="mb-3">Tổng giao dịch <span className="text-primary font-bold">"{isSelectTab}"</span>: {totalResult} giao dịch</div>
-      <table className="table-auto w-full text-left whitespace-no-wrap border-collapse ">
-        <thead>
-          <tr className="bg-primary text-white">
-          <th className="px-4 py-2  w-[800px] text-center whitespace-nowrap">
-              Thời gian 
-            </th>
-            <th className="px-4 py-2  w-[700px] text-center whitespace-nowrap">
-              Loại giao dịch
-            </th>
-            <th className="px-4 py-2  w-[200px] text-center">
-              Nội dung 
-            </th>
-         
-            <th className="px-4 py-2  min-w-[120px] text-center">
-              Số dư trước
-            </th>
-            <th className="px-4 py-2  min-w-[120px] text-center">Số dư sau</th>
-         
-            <th className="px-4 py-2  min-w-[150px] text-center">
-              Số tiền 
-            </th>
-            <th className="px-4 py-2 whitespace-nowrap  w-[650px] text-center">
-              Phương thức
-            </th>
-           
-          </tr>
-        </thead>
-        <tbody className="text-black">
-            {
-              listTrans && listTrans?.reverse().map((item, index) => (
-                <tr key={index} className="bg-gray-100 border-t border-gray-300">
-   <td className="px-4 py-2  w-[350px] break-words  text-center  border-r border-gray-300">
-              {formatDateToCustom(item?.time)}
-              </td>
-              <td className="px-4 py-2  max-w-[200px] break-words border-r border-gray-300 text-center">
-              {getTransactionDescription(item?.transactionType)}
-              </td>
-              
-              <td className="px-4 py-2 w-[200px]  max-w-[200px] break-words border-r border-gray-300 float-left">
-                    <div className="flex items-center ">
-                    {item?.content}
 
-                    </div>
-              </td>
-              <td className="px-4 py-2  max-w-[200px] break-words border-r border-gray-300 text-center">
-               {formatNumber(item?.beforeAmount)}đ
-              </td>
-              <td className="px-4 py-2  max-w-[200px] break-words border-r border-gray-300 text-center">
-              {formatNumber(item?.afterAmount)}đ
-
-
-              </td>
-              <td className="px-4 py-2  max-w-[200px] break-words border-r border-gray-300 text-center">
-              {formatNumber(item?.priceQR)}đ
-                
-
-              </td>
-              <td className="px-4 py-2  max-w-[200px] break-words border-r border-gray-300 text-center">
-               { item?.methodType === "WEBSITE" ? "Số dư website" : "Quét Mã QR"}
-                
-
-              </td>
-            
-            
-           
-              </tr>
-              ))
-            }
-            
-       
-    
-        </tbody>
-      </table>
-      <div className="pagination-controls flex justify-center mt-8">
-          <nav aria-label="Page navigation example">
-            <ul className="list-style-none flex">
-              <li>
-                <button
-                  onClick={() => {
-                    if (currentPage === 0) return;
-                    handlePageChange(currentPage);
-                  }}
-                  disabled={currentPage === 0}
-                  className="disabled:opacity-[0.7] disabled:pointer-events-none cursor-pointer relative block rounded bg-transparent px-3 py-1.5 text-sm text-white transition duration-300 "
-                >
-                  Previous
-                </button>
-              </li>
-
-              {pages.map((page, index) => (
-                <li key={index} className="mx-1">
-                  {page === "..." ? (
-                    <span className="px-3 py-1.5 text-gray-500">...</span>
-                  ) : (
-                    <button
-                      onClick={() => handlePageChange(page)}
-                      className={`relative block rounded bg-transparent px-3 py-1.5 text-sm transition duration-300 ${
-                        currentPage + 1 === page
-                          ? "bg-neutral-700 text-primary border-primary border font-bold"
-                          : "text-surface hover:bg-gray-500 dark:text-white "
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  )}
-                </li>
-              ))}
-
-              <li>
-                <button
-                  onClick={() => {
-                    if (currentPage === totalPages - 1) return;
-                    handlePageChange(currentPage + 2);
-                  }}
-                  disabled={currentPage === totalPages - 1}
-                  className="disabled:opacity-[0.7] disabled:pointer-events-none cursor-pointer relative block rounded bg-transparent px-3 py-1.5 text-sm text-white transition duration-300 "
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
+      {/* Empty state */}
+      {(!listTrans || listTrans.length === 0) && (
+        <div className="flex flex-col items-center justify-center h-[350px] gap-4 text-gray-500">
+          <i className="fa-solid fa-clock-rotate-left text-[64px] text-gray-600"></i>
+          <p className="text-[20px] font-oswald">Chưa có giao dịch nào</p>
         </div>
+      )}
+
+      {listTrans && listTrans.length > 0 && (
+        <>
+          <div className="rounded-xl overflow-hidden border border-gray-700 overflow-x-auto">
+            <table className="table-auto w-full min-w-[700px] text-left border-collapse text-sm">
+              <thead>
+                <tr className="bg-primary text-white">
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Thời gian</th>
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Loại giao dịch</th>
+                  <th className="px-4 py-3 text-center">Nội dung</th>
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Số dư trước</th>
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Số dư sau</th>
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Số tiền</th>
+                  <th className="px-4 py-3 text-center whitespace-nowrap">Phương thức</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listTrans.slice().reverse().map((item, index) => (
+                  <tr key={index} className={`border-t border-gray-700 ${index % 2 === 0 ? "bg-[#1a1a1c]" : "bg-[#111113]"}`}>
+                    <td className="px-4 py-3 text-center text-gray-300 whitespace-nowrap border-r border-gray-700">{formatDateToCustom(item?.time)}</td>
+                    <td className="px-4 py-3 text-center text-gray-300 border-r border-gray-700">{getTransactionDescription(item?.transactionType)}</td>
+                    <td className="px-4 py-3 text-gray-300 border-r border-gray-700">{item?.content}</td>
+                    <td className="px-4 py-3 text-center text-gray-300 border-r border-gray-700 whitespace-nowrap">{formatNumber(item?.beforeAmount)}đ</td>
+                    <td className="px-4 py-3 text-center text-gray-300 border-r border-gray-700 whitespace-nowrap">{formatNumber(item?.afterAmount)}đ</td>
+                    <td className="px-4 py-3 text-center font-bold text-primary border-r border-gray-700 whitespace-nowrap">{formatNumber(item?.priceQR)}đ</td>
+                    <td className="px-4 py-3 text-center text-gray-300">{item?.methodType === "WEBSITE" ? "Số dư website" : "Quét Mã QR"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex justify-center mt-6">
+            <nav>
+              <ul className="flex items-center gap-1">
+                <li>
+                  <button
+                    onClick={() => { if (currentPage !== 0) handlePageChange(currentPage); }}
+                    disabled={currentPage === 0}
+                    className="disabled:opacity-40 disabled:pointer-events-none px-3 py-1.5 text-sm text-white rounded hover:bg-gray-700 transition"
+                  >
+                    Previous
+                  </button>
+                </li>
+                {pages.map((page, index) => (
+                  <li key={index}>
+                    {page === "..." ? (
+                      <span className="px-3 py-1.5 text-gray-500">...</span>
+                    ) : (
+                      <button
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1.5 text-sm rounded transition ${
+                          currentPage + 1 === page
+                            ? "bg-gray-700 text-primary border border-primary font-bold"
+                            : "text-white hover:bg-gray-700"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )}
+                  </li>
+                ))}
+                <li>
+                  <button
+                    onClick={() => { if (currentPage !== totalPages - 1) handlePageChange(currentPage + 2); }}
+                    disabled={currentPage === totalPages - 1}
+                    className="disabled:opacity-40 disabled:pointer-events-none px-3 py-1.5 text-sm text-white rounded hover:bg-gray-700 transition"
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </>
+      )}
     </div>
   );
 }

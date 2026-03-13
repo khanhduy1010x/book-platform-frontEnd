@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAPI } from "../Service/APIContext";
 
-export default function AuthorSlider({search=""}) {
+export default function AuthorSlider({search="", onCountChange}) {
 const {getAllListAuthor} =useAPI()
 const [authors,setAuthors] =useState([])
 useEffect(() => {
@@ -10,9 +10,10 @@ useEffect(() => {
       let resp = await getAllListAuthor();
       if(search) {
         console.log("loc")
-        resp = resp.filter((item,index) => item.name.includes(search));
+        resp = resp.filter((item,index) => item.name.toLowerCase().includes(search.toLowerCase()));
       }
       setAuthors(resp);
+      if(onCountChange) onCountChange(resp.length);
     }
     fetch();
 },[search])

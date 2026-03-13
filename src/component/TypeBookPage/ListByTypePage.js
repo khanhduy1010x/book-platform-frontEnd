@@ -41,7 +41,7 @@ export default function ListByTypePage() {
     setTotalResult(total)
   },[listBookByCateAndBookType])
   return (
-    <div className="bg-black p-[124px] relative min-h-screen">
+    <div className="bg-black pt-20 pb-16 px-4 sm:px-8 md:px-16 lg:pt-[100px] lg:px-[80px] xl:pt-[124px] xl:px-[124px] relative min-h-screen">
                <div className="blur-layer-1 absolute top-[206px] !bg-blur-bg-primary right-1/2 z-0"></div>
                <div className="blur-layer-2 absolute -top-[98px] left-1/2 z-0"></div>
                {!isLoading && (
@@ -50,12 +50,12 @@ export default function ListByTypePage() {
                     listBook={isBookTypeFilter ? combinedBooks : listBookByCateAndBookType} 
                 />
             )}   <div className="mt-10">
-    <h2 className="text-white font-bold font-oswald text-[24px]">Tất cả sách "<span className="text-primary">{ !isBookTypeFilter ? listBookByCateAndBookType[0]?.listBook[0]?.category?.cateName : bookType === "EBOOK" ? "Sách điện tử" : "Sách giấy"}</span>"</h2>
-    <p className="text-white font-oswald">{totalResult} kết quả</p>
+    <h2 className="text-white font-bold font-oswald text-lg sm:text-xl md:text-[24px]">Tất cả sách "<span className="text-primary">{ !isBookTypeFilter ? listBookByCateAndBookType[0]?.listBook[0]?.category?.cateName : bookType === "EBOOK" ? "Sách điện tử" : "Sách giấy"}</span>"</h2>
+    <p className="text-white font-oswald text-sm sm:text-base">{totalResult} kết quả</p>
      {
       !isBookTypeFilter &&  listBookByCateAndBookType.map((item,index) => (
 <div className="mt-6" key={index}>
-    <span className="text-white text-[30px] font-bold font-oswald">{!memberMapper(item.memberType) ? "Miễn phí/Trả phí" : memberMapper(item.memberType)}</span>
+    <span className="text-white text-xl sm:text-2xl md:text-[30px] font-bold font-oswald">{!memberMapper(item.memberType) ? "Miễn phí/Trả phí" : memberMapper(item.memberType)}</span>
      <BookSlider  listBook={item.listBook}/>
 </div>
         ))
@@ -63,7 +63,7 @@ export default function ListByTypePage() {
        {
       isBookTypeFilter &&  listBookByBookType.map((item,index) => (
 <div className="mt-6" key={index}>
-    <span className="text-white text-[30px] font-bold font-oswald">{item.cateName}</span>
+    <span className="text-white text-xl sm:text-2xl md:text-[30px] font-bold font-oswald">{item.cateName}</span>
      <BookSlider  listBook={item.listBook}/>
 </div>
         ))

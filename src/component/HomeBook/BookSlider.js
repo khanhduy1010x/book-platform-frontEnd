@@ -168,22 +168,22 @@ function getButtonClass(item) {
 )}
 
 <div
-  className="w-[100%] hide-scrollbar relative overflow-x-auto overflow-y-hidden"
+  className="w-[100%] hide-scrollbar relative overflow-x-auto overflow-y-visible"
   ref={sliderRef}
 >
   <div className="w-full max-w-full list-carousel-item  hide-scrollbar transition-transform ease-in-out">
-    <div className="w-max ml-8 flex hide-scrollbar pt-4 px-2">
+    <div className="w-max ml-2 sm:ml-4 md:ml-8 flex hide-scrollbar pt-4 px-2">
       {listBook.map((item, index) => (
         
         <div
           key={index}
-          className={`inline-block relative lg:w-52 group xl:w-56 group 2xl:w-[265px] cursor-pointer float-left mr-[42px] last:mr-[0px] ${'scale-' + scale}`}
+          className={`inline-block relative w-28 sm:w-36 md:w-44 lg:w-52 xl:w-56 2xl:w-[265px] group cursor-pointer float-left mr-4 sm:mr-6 md:mr-8 lg:mr-[42px] last:mr-[0px] ${'scale-' + scale}`}
           onMouseEnter={(event) => handleMouseEnter(index, event)}
           onMouseLeave={handleMouseLeave}
         >
           <div>
             <div className="relative w-full mt-5 ">
-            <button className={`absolute py-1 z-[10] px-3 group-hover:hidden -left-8 top-2 -rotate-[35deg] black_border ${getButtonClass(item)} text-white  font-bold`}>
+            <button className={`absolute py-0.5 z-[10] px-1.5 sm:px-3 sm:py-1 group-hover:hidden -left-6 sm:-left-8 top-2 -rotate-[35deg] black_border text-[9px] sm:text-sm ${getButtonClass(item)} text-white font-bold`}>
 {getBookDescription(item)}                 
 </button>
             
@@ -212,10 +212,10 @@ function getButtonClass(item) {
             }
             
             </div>
-            <div className="mt-4 h-[41px]">
+            <div className="mt-4 min-h-[41px]">
               <Link
-                to="/detail"
-                className="text-white text-base-16-20 font-bold t-ellipsis-2 hover:text-primary"
+                to={`/detail/${item.id}`}
+                className="text-white text-base-16-20 font-bold line-clamp-2 hover:text-primary"
               >
                {item.bookName}
               </Link>
@@ -223,7 +223,7 @@ function getButtonClass(item) {
           </div>
           {hoveredIndex === index && (
             <div
-              className={`absolute h-[87.5%] effect cursor-pointer animate 
+              className={`hidden lg:block absolute h-[87.5%] effect cursor-pointer animate 
             transition-opacity duration-500 ease-in-out bg-dark-gradient mt-2 border-0.1 border-primary text-white backdrop-blur rounded-xl top-0 z-50 p-4 min-w-[732px] book-content ${
               isRightHalf ? "right-0" : "left-0"
             }`}
@@ -236,13 +236,13 @@ function getButtonClass(item) {
 
                 <div className="w-[63%]">
                   <Link
-                    to={"/detail"}
+                    to={`/detail/${item.id}`}
                     className="font-bold text-white-default text-2xl t-ellipsis-2"
                   >
                     {item.bookName}
                   </Link>
                   <div>
-                    <Link to="/detail">
+                    <Link to={`/detail/${item.id}`}>
                       <h2 className="mt-4 font-bold text-white-default text-base">
                       {item?.author?.name}
                       </h2>

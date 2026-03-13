@@ -43,14 +43,21 @@ import Social from "./component/Social/Social";
 import Chat from "./component/Chat/Chat";
 import ProtectedAdmin from "./component/Shared/Header/ProtectedAdmin";
 import ProtectMiniGame from "./component/Shared/Header/ProtectMiniGame";
+import ServerErrorPage from "./component/Shared/ServerErrorPage";
 function App() {
-  const {isLogin,isCheckingLogin,userInfo} = useAPI();
+  const {isLogin,isCheckingLogin,userInfo,isServerDown,serverCheckDone} = useAPI();
   const location = useLocation();
   const [showModalChat,setShowModalChat]=useState(false);
   const isEpubReaderRoute = location.pathname.startsWith("/epubread") || location.pathname.startsWith("/admin") ;
+  const isNoFooterRoute = location.pathname === "/social";
   useEffect(() => {
     window.scrollTo(0, 0);
 }, [location.pathname]);
+
+// Neu server down thi hien trang loi
+if (serverCheckDone && isServerDown) {
+  return <ServerErrorPage onRetry={() => window.location.reload()} />;
+}
 
 return (
   <>
@@ -95,9 +102,9 @@ return (
         </ProtectedRoute>
       } />
       <Route path="/mini-game" element={
-        <ProtectMiniGame isLogin={isLogin} isVip={userInfo && userInfo?.memberType === "ADVANCE"} isCheckingLogin={isCheckingLogin}>
+        // <ProtectMiniGame isLogin={isLogin} isVip={userInfo && userInfo?.memberType === "ADVANCE"} isCheckingLogin={isCheckingLogin}>
           <MainMiniGame />
-        </ProtectMiniGame>
+        // </ProtectMiniGame>
       } />
       <Route path="/type/:bookType/:cate?" element={<ListByTypePage />} />
 
@@ -132,7 +139,7 @@ return (
         </ProtectedRoute>
       } />
     </Routes>
-    {!isEpubReaderRoute && <Footer />}
+    {!isEpubReaderRoute && !isNoFooterRoute && <Footer />}
   </>
 );
 }

@@ -60,8 +60,10 @@ export function ContextAPI({ children }) {
   const [invalidOtpResetPassword, setInvalidOtpResetPassword]= useState("");
   const [errorUsernameFGP, setErrorUsernameFGP]=useState("");
   const [isCheckingLogin, setIsCheckingLogin] = useState(true);
+  const [isServerDown, setIsServerDown] = useState(false);
+  const [serverCheckDone, setServerCheckDone] = useState(false);
 
-  const BASE_URL = "http://localhost:9999";
+  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [orderCreationRequest, setOrderCreationRequest] = useState({
      province: "",
      district: "",
@@ -77,7 +79,37 @@ export function ContextAPI({ children }) {
 /////Fetch lay cac data home 
 useEffect(() =>{
   getInfoUser();
-},[])
+},[])  
+
+/// Kiem tra may chu con song khong
+useEffect(() => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+  fetch(`${BASE_URL}/banner`, {
+    method: "GET",
+    signal: controller.signal,
+  })
+    .then(() => {
+      clearTimeout(timeoutId);
+      setIsServerDown(false);
+    })
+    .catch((err) => {
+      clearTimeout(timeoutId);
+      // Neu la AbortError (timeout) hoac TypeError (network fail) → server down
+      if (err.name === "AbortError" || err instanceof TypeError) {
+        setIsServerDown(true);
+      }
+    })
+    .finally(() => {
+      setServerCheckDone(true);
+    });
+
+  return () => {
+    clearTimeout(timeoutId);
+    controller.abort();
+  };
+}, []);
 
   // Kiem tra token xem con han khong ( introspect ) 
   const [isFetching, setIsFetching] = useState(false);
@@ -282,8 +314,8 @@ const refreshToken = () => {
       });
   };
 
-  ///// Dang ki tai khoan
-  const sendRegisterAccount = (otp) => {
+  ///// Dang ki tai khoan (khong can OTP)
+  const sendRegisterAccount = () => {
     fetch(`${BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
@@ -294,7 +326,7 @@ const refreshToken = () => {
         phone: accountCreatRequest.phone,
         fullName: accountCreatRequest.name,
         username : accountCreatRequest.username,
-        otp: otp,
+        otp: "",
       }),
     })
       .then((response) => {
@@ -1483,28 +1515,27 @@ const editAvatar = async (avatarFile) => {
   const token = getToken();
   try {
     const formData = new FormData();
-    formData.append("file", avatarFile); 
-
+    formData.append("file", avatarFile);
     const response = await fetch(`${BASE_URL}/account/edit-avatar`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
     const data = await response.json();
     if (data.code === 1000) {
-      getInfoUser(token);
-      return data.result;
-    } else {
-      return false;
+      // Backend đã lưu xong mới trả result, cập nhật trực tiếp không cần reload
+      setUserInfo(prev => ({ ...prev, avatar: data.result + "?t=" + Date.now() }));
     }
+    return data.code === 1000;
   } catch (e) {
     console.error("Error uploading avatar:", e);
     return false;
   }
 };
 const editInfor = async (name, birth) => {
+  // Optimistic update
+  const prevInfo = { fullName: userInfo?.fullName, birth: userInfo?.birth };
+  setUserInfo(prev => ({ ...prev, fullName: name, birth }));
   try {
     const token = getToken();
     const response = await fetch(`${BASE_URL}/account/edit-information`, {
@@ -1518,13 +1549,15 @@ const editInfor = async (name, birth) => {
 
     const data = await response.json();
     if (data.code === 1000) {
-      console.log("Information updated successfully", data.result);
       return data.result;
     } else {
+      // Revert nếu thất bại
+      setUserInfo(prev => ({ ...prev, fullName: prevInfo.fullName, birth: prevInfo.birth }));
       console.error("Error updating information:", data.message);
       return null;
     }
   } catch (error) {
+    setUserInfo(prev => ({ ...prev, fullName: prevInfo.fullName, birth: prevInfo.birth }));
     console.error("Error in editInfor API:", error);
   }
 };
@@ -2272,6 +2305,7 @@ const getAllListAuthor = async () => {
     success,
     setSuccess,
     sendRegisterAccount,
+    registerAccount: sendRegisterAccount,
     setAccountCreateRequest,
     accountCreatRequest,
     loginRequest,
@@ -2355,6 +2389,8 @@ const getAllListAuthor = async () => {
     ,editInfor
     ,changePassword,
     isCheckingLogin,
+    isServerDown,
+    serverCheckDone,
     getAllBookForAdmin,
     getAllCate,
     getAllAuthor,

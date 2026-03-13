@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { ref, push, get, remove, onValue, update } from "firebase/database";
-import {
-  uploadBytesResumable,
-  getDownloadURL,
-  ref as storageRef,
-} from "firebase/storage";
-import { database, storage } from "../../config/firebase.js"; // Import Firebase Database và Storage
-import { v4 as uuidv4 } from "uuid"; // Import UUID để tạo tên file duy nhất
+import { database } from "../../config/firebase.js";
 import { useAPI } from "../Service/APIContext.js";
 import EmojiPicker from "emoji-picker-react";
 import { useDebounce } from "use-debounce";
@@ -46,7 +41,6 @@ function Social() {
   const [originalMessages, setOriginalMessages] = useState([]);
   const [tempCommentIMGs, setTempCommentIMGs] = useState([]);
   const [commentFiles, setCommentFiles] = useState([]);
-  const [showEmojiPickerCmt, setShowEmojiPickerCmt] = useState(-1);
   const [prevComment, setPrevComment] = useState([]);
   const [currentFileComment, setCurrentFileComment] = useState([]);
   const [editFiles, setEditFiles] = useState({}); // Lưu file được chọn
@@ -127,26 +121,22 @@ function Social() {
     setIsHovered(false);
   };
 
-  // Hàm upload file lên Firebase Storage và trả về URL
-  const uploadFile = (file, callback) => {
-    if (!file) return callback(null);
-
-    const fileName = `${uuidv4()}_${file.name}`;
-    const fileRef = storageRef(storage, `uploads/${fileName}`);
-
-    const uploadTask = uploadBytesResumable(fileRef, file);
-    uploadTask.on(
-      "state_changed",
-      null,
-      (error) => console.error("Upload failed", error),
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          callback(url);
-        });
-      }
+  // Hàm upload file lên Cloudinary và trả về URL
+  const uploadFile = async (file) => {
+    if (!file) return null;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "social");
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/dohwcdeux/image/upload`,
+      { method: "POST", body: formData }
     );
+    const data = await res.json();
+    return data.secure_url;
   };
   const emojiPickerRef = useRef(null); // Tạo ref cho bảng emoji
+  const emojiButtonRef = useRef(null); // Ref cho button mở emoji
+  const [emojiPickerPos, setEmojiPickerPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -309,21 +299,8 @@ function Social() {
     console.log(currentFileComment);
     const file = await fetchMultipleFiles(tempImageEditPost);
     console.log("so luong alo alo  : ", file);
-    // Tạo các promise để tải lên từng file
-    const uploadPromises = file.map((file) => {
-      return new Promise((resolve, reject) => {
-        uploadFile(file, (url) => {
-          if (url) {
-            resolve(url); // Trả về URL của file đã tải lên thành công
-          } else {
-            reject("Upload failed"); // Thất bại khi tải lên
-          }
-        });
-      });
-    });
-
-    // Chờ tất cả các file được tải lên Firebase Storage
-    const uploadedFileUrls = await Promise.all(uploadPromises);
+    // Tải lên Cloudinary
+    const uploadedFileUrls = await Promise.all(file.map((f) => uploadFile(f)));
     fileUrls.push(...uploadedFileUrls);
     console.log(fileUrls);
     const postRef = ref(database, `messages/${postId}`); // Đường dẫn tới bài viết trong Realtime Database
@@ -419,21 +396,8 @@ function Social() {
     console.log(currentFileComment);
     const file = await fetchMultipleFiles(currentFileComment);
     console.log(file);
-    // Tạo các promise để tải lên từng file
-    const uploadPromises = file.map((file) => {
-      return new Promise((resolve, reject) => {
-        uploadFile(file, (url) => {
-          if (url) {
-            resolve(url); // Trả về URL của file đã tải lên thành công
-          } else {
-            reject("Upload failed"); // Thất bại khi tải lên
-          }
-        });
-      });
-    });
-
-    // Chờ tất cả các file được tải lên Firebase Storage
-    const uploadedFileUrls = await Promise.all(uploadPromises);
+    // Tải lên Cloudinary
+    const uploadedFileUrls = await Promise.all(file.map((f) => uploadFile(f)));
     fileUrls.push(...uploadedFileUrls);
     if (newCommentContent.trim() === prevComment.trim()) {
       edit = false;
@@ -469,22 +433,9 @@ function Social() {
     const fileUrls = [];
     let uploadCount = 0;
 
-    // Upload từng file lên Firebase và chờ kết quả
-    const uploadPromises = files.map((file) => {
-      return new Promise((resolve, reject) => {
-        uploadFile(file, (url) => {
-          if (url) {
-            resolve(url); // Trả về URL của file đã tải lên thành công
-          } else {
-            reject("Upload failed");
-          }
-        });
-      });
-    });
-
-    // Chờ tất cả các file được tải lên
+    // Tải lên Cloudinary
     try {
-      const uploadedFileUrls = await Promise.all(uploadPromises);
+      const uploadedFileUrls = await Promise.all(files.map((f) => uploadFile(f)));
       fileUrls.push(...uploadedFileUrls); // Lưu danh sách các URL file đã tải lên
 
       // Đẩy tin nhắn lên Firebase Database sau khi tất cả file đã được tải xong
@@ -515,21 +466,8 @@ function Social() {
 
     const fileUrls = []; // Mảng chứa các URL file đã tải lên
 
-    // Tạo các promise để tải lên từng file
-    const uploadPromises = filesToUpload.map((file) => {
-      return new Promise((resolve, reject) => {
-        uploadFile(file, (url) => {
-          if (url) {
-            resolve(url); // Trả về URL của file đã tải lên thành công
-          } else {
-            reject("Upload failed"); // Thất bại khi tải lên
-          }
-        });
-      });
-    });
-
-    // Chờ tất cả các file được tải lên Firebase Storage
-    const uploadedFileUrls = await Promise.all(uploadPromises);
+    // Tải lên Cloudinary
+    const uploadedFileUrls = await Promise.all(filesToUpload.map((f) => uploadFile(f)));
     fileUrls.push(...uploadedFileUrls); // Lưu danh sách các URL file đã tải lên vào mảng
 
     // Lấy danh sách bình luận hiện tại của bài viết
@@ -759,144 +697,129 @@ function Social() {
       return [...prev, URL.createObjectURL(e.target.files[0])];
     });
   };
+
+  const trendingHashtags = (() => {
+    const map = {};
+    messages.forEach(msg => {
+      msg.message?.split(' ').forEach(word => {
+        if (word.startsWith('#') && word.length > 1) {
+          const tag = word.toLowerCase();
+          map[tag] = (map[tag] || 0) + 1;
+        }
+      });
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  })();
+
   return (
-    <div
-      style={{ padding: "120px 220px 70px 220px", background: "black" }}
-      className="relative px-[72px] "
-    >
+    <div className="relative min-h-screen bg-gradient-to-br from-[#0f0f1a] via-[#13131f] to-[#0a0a14] pt-[72px] sm:pt-[100px] lg:pt-[120px] pb-[70px] px-4 sm:px-6 lg:px-8">
       <div className="blur-layer-1 absolute top-[206px] !bg-blur-bg-primary right-1/2 z-[-1]"></div>
       <div className="blur-layer-1 absolute top-[300px] left-[900px] !bg-blur-bg-primary right-1/2 z-[-1]"></div>
-      <div className="h-screen flex flex-col items-center justify-center bg-">
-        <div className="w-full max-w-3xl mx-auto">
+      <div className="min-h-screen max-w-6xl mx-auto">
+        <div className="flex gap-6 lg:gap-8 items-start">
+          <div className="flex-1 min-w-0">
+
           {/* Phần Post Bài */}
-          <div
-            className="bg-white shadow-lg rounded-lg p-6 mb-4 relative z-[1001]"
-            style={{ zIndex: "10001" }} //>?
-          >
+          <div className="bg-[#1e1e2e] shadow-xl rounded-2xl p-4 sm:p-6 mb-6 relative z-[1001] border border-white/10">
             <input
-              className="w-full p-3 border !h-[70px] rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full p-3 bg-gray-700 border border-white/10 text-white placeholder:text-gray-400 h-[60px] sm:h-[70px] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 text-sm sm:text-base"
               rows="4"
               placeholder="Nhập nội dung bài viết..."
-              value={ipMessage} //>?
+              value={ipMessage}
               onChange={(e) => setIpMessage(e.target.value)}
               ref={input}
             />
-            <div className="flex gap-4 items-center flex-nowrap">
-              {/* Vùng hiển thị hình ảnh đã chọn */}
-              <div className="flex gap-2">
-                {tempIMGs.map(
-                  (
-                    img,
-                    index //>?
-                  ) => (
-                    <div
-                      key={index}
-                      className="w-[60px] h-[60px] relative bg-[#fafafa] border-dotted rounded-xl border-[2px] border-sky-500 flex items-center justify-center transition-transform duration-300 hover:scale-105"
+            <div className="flex flex-wrap gap-2 sm:gap-3 items-center mt-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                {tempIMGs.map((img, index) => (
+                  <div
+                    key={index}
+                    className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] relative bg-[#fafafa] border-dotted rounded-xl border-[2px] border-sky-500 flex items-center justify-center transition-transform duration-300 hover:scale-105 overflow-hidden"
+                  >
+                    <img src={img} alt="Selected preview" className="object-cover w-full h-full rounded-xl" />
+                    <button
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] leading-none"
                     >
-                      <img
-                        src={img}
-                        alt="Selected preview"
-                        className="object-cover w-full h-full"
-                      />
-                      {/* Nút xóa hình ảnh */}
-                      <button
-                        onClick={() => handleRemoveImage(index)} // Hàm xóa hình ảnh
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2 py-1 text-xs"
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  )
-                )}
-
-                {/* Ô chọn ảnh mới */}
-                <div className="w-[60px] h-[60px] relative bg-[#fafafa] border-dotted rounded-xl border-[2px] border-sky-500 flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105">
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                  <div className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] relative bg-[#2a2a3e] border-dotted rounded-xl border-[2px] border-sky-500/60 flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105">
                   <input
                     type="file"
                     id="fileInput"
                     accept="image/*"
                     onChange={handleFileChange}
-                    style={{
-                      opacity: 0,
-                      position: "absolute",
-                      inset: 0,
-                      cursor: "pointer",
-                    }}
+                    style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer" }}
                   />
-                  <i className="fa-solid fa-folder-plus"></i>
+                  <i className="fa-solid fa-folder-plus text-gray-300"></i>
                 </div>
-
                 <div className="post-container relative z-[50]">
-                  {/* Nút chọn emoji */}
                   <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)} //>?
+                    ref={emojiButtonRef}
+                    onClick={() => {
+                      if (!showEmojiPicker && emojiButtonRef.current) {
+                        const rect = emojiButtonRef.current.getBoundingClientRect();
+                        setEmojiPickerPos({
+                          top: rect.bottom + window.scrollY + 8,
+                          left: rect.left + window.scrollX,
+                        });
+                      }
+                      setShowEmojiPicker(!showEmojiPicker);
+                    }}
                     title="Cảm xúc"
-                    className="w-[60px] h-[60px] bg-gray-200 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-transform duration-300 hover:scale-105"
+                    className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] bg-gray-600 flex items-center justify-center rounded-xl hover:bg-gray-500 transition-all duration-200 hover:scale-105 text-xl"
                   >
                     😀
                   </button>
-
-                  {/* Bảng chọn emoji */}
-                  {showEmojiPicker && (
-                    <div ref={emojiPickerRef} className="absolute z-[1001]">
-                      <EmojiPicker
-                        onEmojiClick={
-                          (emoji) => setIpMessage(ipMessage + emoji.emoji) //>?
-                        }
-                      />
-                    </div>
+                  {showEmojiPicker && createPortal(
+                    <div
+                      ref={emojiPickerRef}
+                      style={{ top: emojiPickerPos.top, left: emojiPickerPos.left }}
+                      className="fixed z-[99999] rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                    >
+                      <EmojiPicker onEmojiClick={(emoji) => setIpMessage(ipMessage + emoji.emoji)} theme="dark" />
+                    </div>,
+                    document.body
                   )}
                 </div>
               </div>
-
-              <>
-                <div className="flex justify-between w-full gap-4">
-                  <button
-                    type="button"
-                    onClick={handleSendMessage} //>?
-                    title="Đăng"
-                    className="w-[60px] h-[60px] bg-blue-500 flex items-center justify-center text-white border rounded-lg shadow-lg transition-transform duration-300 hover:bg-blue-400 hover:scale-105"
-                  >
-                    <i className="fad fa-paper-plane fa-spin text-black"></i>
-                  </button>
-                </div>
-              </>
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  onClick={handleSendMessage}
+                  title="Đăng"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-blue-500 text-white rounded-full font-semibold text-sm shadow-lg hover:opacity-90 hover:scale-105 transition-all duration-200"
+                >
+                  <i className="fad fa-paper-plane text-base"></i>
+                  <span>Đăng</span>
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Tìm kiếm */}
           <div className="mb-4 relative z-[1001]">
             <input
               type="text"
               placeholder="Tìm kiếm bài viết..."
               value={searchPost}
               onChange={(e) => {
-                //>?
                 setSearchPost(e.target.value);
-                setCurrentHashtag(""); // Reset currentHashtag khi người dùng thay đổi từ khóa tìm kiếm
+                setCurrentHashtag("");
                 setHiddenSearch(true);
-              }} // Dùng state searchPost để cập nhật từ khóa tìm kiếm
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setHiddenSearch(false); // Ẩn bảng gợi ý khi nhấn Enter
-                }
               }}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+              onKeyDown={(e) => { if (e.key === "Enter") setHiddenSearch(false); }}
+              className="w-full p-3 bg-gray-700 border border-white/10 text-white placeholder:text-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             />
-
-            {/* Hiển thị gợi ý tìm kiếm */}
             {hiddenSearch && suggestions.length > 0 && (
-              <ul
-                className="absolute w-full bg-white shadow-lg rounded-lg mt-2 z-10 max-h-60 overflow-y-auto"
-                style={{ zIndex: "1001" }}
-              >
+              <ul className="absolute w-full bg-white shadow-xl rounded-xl mt-2 z-[1001] max-h-60 overflow-y-auto">
                 {suggestions.map((suggestion, index) => (
                   <li
                     key={index}
-                    onClick={() => {
-                      handleSuggestionClick(suggestion);
-                      setHiddenSearch(false);
-                    }} // Xử lý khi nhấp vào gợi ý
-                    className="p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => { handleSuggestionClick(suggestion); setHiddenSearch(false); }}
+                    className="p-3 cursor-pointer hover:bg-gray-100 text-sm first:rounded-t-xl last:rounded-b-xl"
                   >
                     {suggestion.message}
                   </li>
@@ -905,650 +828,375 @@ function Social() {
             )}
           </div>
 
-          {/* Hiển thị thông báo hashtag */}
-          {currentHashtag && ( //>?
-            <div className="bg-yellow-200 p-2 text-center font-bold text-white">
+          {/* Hashtag banner */}
+          {currentHashtag && (
+            <div className="bg-yellow-400 text-black p-2 text-center font-bold rounded-lg mb-2 text-sm">
               Hashtag: {currentHashtag}
             </div>
           )}
           {currentHashtag && (
-            <div
-              className="bg-yellow-200 p-2 text-center font-bold flex justify-between items-center"
-              style={{ zIndex: "1001" }}
-            >
-              <span>Đang ở hashtag: {currentHashtag}</span>
+            <div className="bg-yellow-400 text-black p-3 rounded-xl font-bold flex justify-between items-center mb-4 relative z-[1001]">
+              <span className="text-sm">Đang ở hashtag: {currentHashtag}</span>
               <button
-                onClick={handleResetSearch} // Reset khi bấm vào nút
-                className="text-white bg-red-500 hover:bg-red-600 p-1 rounded-full ml-2"
+                onClick={handleResetSearch}
+                className="flex items-center gap-1.5 px-3 py-1 bg-red-500/80 hover:bg-red-500 text-white rounded-full text-xs font-semibold transition-all"
               >
-                Delete
+                <i className="fa-solid fa-xmark text-[10px]"></i> Xóa
               </button>
             </div>
           )}
 
-          {/* Danh sách tin nhắn */}
-          <div className="flex flex-col  overflow-x-hidden w-full h-full relative ">
+          {/* Danh sách bài viết */}
+          <div className="flex flex-col gap-10 w-full">
             {messages
-              .filter(
-                (msg) => !msg.hidden || !msg.hidden.includes(userInfo.accID)
-              )
+              .filter((msg) => !msg.hidden || !msg.hidden.includes(userInfo.accID))
               .map((msg, index) => (
                 <div
                   key={msg.id}
-                  className="relative bg-ss	 backdrop-blur border-white border text-white shadow-lg rounded-lg mb-4 p-4"
-                  style={{ "z-index": `${1000 - index}` }}
+                  className="relative bg-[#1e1e2e] border border-white/10 text-white shadow-xl rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors"
+                  style={{ zIndex: `${1000 - index}` }}
                 >
-                  <div className="pb-[100px]">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-[40px] h-[40px] rounded-full overflow-hidden">
-                          <img
-                            className="object-cover"
-                            src={msg.userInfo?.avatar}
-                          />
-                        </div>
-                        <div className="text-white font-semibold">
-                          {msg.userInfo?.fullName}
-                        </div>
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                        <img className="object-cover w-full h-full" src={msg.userInfo?.avatar} alt="" />
                       </div>
-                      <div className="flex justify-between items-center">
-                        <div>{msg?.edited ? "(Đã chỉnh sửa)" : null}</div>
-
-                        {/* Thời gian tương đối (số phút trước) */}
-                        <div className="text-white text-sm group relative">
-                          <span>{formatRelativeTime(msg.timestamp)}</span>
-
-                          {/* Thời gian chi tiết (hiển thị khi hover vào thời gian tương đối) */}
-                          <div
-                            className="absolute left-0 mt-1 w-max bg-white text-black text-xs px-2 py-1 border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{ transform: "translateY(100%)" }} // Đặt vị trí bên dưới số phút
-                          >
-                            {new Date(msg.timestamp).toLocaleDateString()}{" "}
-                            {new Date(msg.timestamp).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Dấu ba chấm */}
-                        <div className="relative group ml-6">
-                          <button
-                            className="text-white hover:text-white focus:outline-none"
-                            onClick={() => {
-                              setShowSettings(msg.id);
-                              setIsShow(!isShow);
-                            }}
-                          >
-                            <i className="fas fa-ellipsis-h text-lg"></i>
-                          </button>
-
-                          {/* Hiển thị tùy chọn khi nhấp vào dấu ba chấm */}
-                          {showSettings === msg.id && isShow && (
-                            <div
-                              ref={settingsRef}
-                              className="absolute right-0 w-[100px] bg-white border border-gray-300 rounded-lg shadow-lg z-50"
-                            >
-                              {/* Nút ẩn bài viết */}
-                              <button
-                                onClick={() => handleDeleteMessage(msg.id)}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                              >
-                                <i
-                                  className="fas fa-do-not-enter"
-                                  style={{ color: "red" }}
-                                ></i>{" "}
-                                <span className="text-black">Ẩn bài viết</span>
-                              </button>
-
-                              {/* Nút xóa bài viết (chỉ hiển thị nếu là người dùng hoặc admin) */}
-                              {(msg?.userInfo?.accID === userInfo?.accID ||
-                                userInfo?.role === "ADMIN") && (
-                                <button
-                                  onClick={() => handleRemoveMessage(msg.id)}
-                                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                >
-                                  <i
-                                    className="fad fa-trash-alt"
-                                    style={{ color: "red" }}
-                                  ></i>{" "}
-                                  <span className="text-black">
-                                    Xóa bài viết
-                                  </span>
-                                </button>
-                              )}
-
-                              {/* Nút chỉnh sửa bài viết */}
-                              {msg?.userInfo?.accID === userInfo?.accID && (
-                                <div>
-                                  <button
-                                    onClick={() => {
-                                      setTempImageEditPost(msg.fileUrls);
-                                      handleEditPost(msg.id);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                  >
-                                    <i
-                                      className="fal fa-file-edit"
-                                      style={{ color: "blue" }}
-                                    ></i>{" "}
-                                    <span className="text-black">
-                                      Chỉnh sửa
-                                    </span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <span className="text-white font-semibold text-sm sm:text-base">{msg.userInfo?.fullName}</span>
                     </div>
-                    <div>
-                      {msg.message.split(" ").map((word, index) => {
-                        // Nếu là hashtag
-                        if (word.startsWith("#")) {
-                          return (
-                            <span
-                              key={index}
-                              className="text-blue-500 font-bold cursor-pointer"
-                              style={{ color: "blue" }}
-                              onClick={() => handleHashtagClick(word)}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      {msg?.edited && <span className="text-gray-400 text-xs">(Đã chỉnh sửa)</span>}
+                      <div className="text-gray-400 text-xs group relative">
+                        <span className="cursor-default">{formatRelativeTime(msg.timestamp)}</span>
+                        <div
+                          className="absolute right-0 mt-1 w-max bg-white text-black text-xs px-2 py-1 border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                          style={{ transform: "translateY(100%)" }}
+                        >
+                          {new Date(msg.timestamp).toLocaleDateString()}{" "}
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <button
+                          className="text-gray-300 hover:text-white focus:outline-none p-1"
+                          onClick={() => { setShowSettings(msg.id); setIsShow(!isShow); }}
+                        >
+                          <i className="fas fa-ellipsis-h"></i>
+                        </button>
+                        {showSettings === msg.id && isShow && (
+                          <div
+                            ref={settingsRef}
+                            className="absolute right-0 top-8 w-36 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden"
+                          >
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className="flex items-center gap-2 w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
                             >
-                              {word}
-                            </span>
-                          );
-                        }
-
-                        // Nếu là từ trùng với từ tìm kiếm
-                        const highlightedWord =
-                          searchPost &&
-                          word
-                            .toLowerCase()
-                            .includes(searchPost.toLowerCase()) ? (
-                            <span
-                              key={index}
-                              className="bg-red-500  text-white"
-                            >
-                              {word}
-                            </span>
-                          ) : (
-                            renderMessageWithLinks(word)
-                          );
-
-                        return <span key={index}>{highlightedWord} </span>;
-                      })}
+                              <i className="fas fa-do-not-enter text-red-500 w-4"></i>
+                              <span className="text-gray-700">Ẩn bài viết</span>
+                            </button>
+                            {(msg?.userInfo?.accID === userInfo?.accID || userInfo?.role === "ADMIN") && (
+                              <button
+                                onClick={() => handleRemoveMessage(msg.id)}
+                                className="flex items-center gap-2 w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                              >
+                                <i className="fad fa-trash-alt text-red-500 w-4"></i>
+                                <span className="text-gray-700">Xóa bài viết</span>
+                              </button>
+                            )}
+                            {msg?.userInfo?.accID === userInfo?.accID && (
+                              <button
+                                onClick={() => { setTempImageEditPost(msg.fileUrls); handleEditPost(msg.id); }}
+                                className="flex items-center gap-2 w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                              >
+                                <i className="fal fa-file-edit text-blue-500 w-4"></i>
+                                <span className="text-gray-700">Chỉnh sửa</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className=" items-center justify-center">
-                    {editMode[msg.id] ? (
-                      <>
-                      <div className="flex gap-4">
-                        {tempImageEditPost &&
-                          tempImageEditPost.length > 0 &&
+
+                  {/* Nội dung */}
+                  <div className="text-gray-100 text-sm sm:text-base leading-relaxed mb-3">
+                    {msg.message.split(" ").map((word, index) => {
+                      if (word.startsWith("#")) {
+                        return (
+                          <span
+                            key={index}
+                            className="text-blue-400 font-bold cursor-pointer hover:underline"
+                            onClick={() => handleHashtagClick(word)}
+                          >
+                            {word}{" "}
+                          </span>
+                        );
+                      }
+                      const highlightedWord =
+                        searchPost && word.toLowerCase().includes(searchPost.toLowerCase()) ? (
+                          <span key={index} className="bg-red-500 text-white rounded px-0.5">{word}</span>
+                        ) : (
+                          renderMessageWithLinks(word)
+                        );
+                      return <span key={index}>{highlightedWord} </span>;
+                    })}
+                  </div>
+
+                  {/* Chỉnh sửa bài viết */}
+                  {editMode[msg.id] ? (
+                    <div className="mt-2 mb-3">
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {tempImageEditPost && tempImageEditPost.length > 0 &&
                           tempImageEditPost.map((item, index) => (
-                            <div>
-                              {" "}
-                              <img key={index} src={item} className="w-[100px] h-[100px] object-cover rounded-xl"/>
+                            <div key={index} className="relative">
+                              <img src={item} className="w-[80px] h-[80px] object-cover rounded-xl" />
                               <button
                                 onClick={() => handleRemoveEditImage(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]"
                               >
-                                Remove
+                                ✕
                               </button>
                             </div>
                           ))}
-                          </div>
-                        <textarea
-                          value={editContent[msg.id] || msg.message}
-                          onChange={(e) =>
-                            setEditContent((prev) => ({
-                              ...prev,
-                              [msg.id]: e.target.value,
-                            }))
-                          }
-                          className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 mt-2 text-black"
-                        />
-                        {/* Nút Gửi File */}
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            ref={fileComment}
-                            onChange={(e) => {
-                              handleAddNewImagePostEdit(e);
-                            }}
-                            multiple
-                          />
-                        </label>
-                        <button
-                          onClick={() => handleSaveEdit(msg.id)} // Gọi hàm lưu khi nhấn Lưu
-                          className="bg-blue-500 text-white p-2 rounded-lg shadow-lg mt-2 hover:bg-blue-400"
-                        >
-                          Lưu
-                        </button>
-                        <button
-                          onClick={() => handleCancelEdit(msg.id)} // Gọi hàm hủy khi nhấn Hủy
-                          className="bg-gray-300 text-white p-2 rounded-lg shadow-lg mt-2 hover:bg-gray-400 ml-2"
-                        >
-                          Hủy
-                        </button>
-                      </>
-                    ) : null}
-
-                    {!editMode[msg.id] && msg.fileUrls && msg?.fileUrls?.length > 0 && (
-                      <div className="grid grid-cols-2 gap-4">
-                        {msg.fileUrls
-                          .slice(
-                            0,
-                            !showAllImages[msg.id] && msg?.fileUrls?.length > 3
-                              ? subImg
-                              : msg?.fileUrls?.length
-                          )
-                          .map((url, index) => (
-                            <div
-                              key={index}
-                              style={{ width: "150px", height: "150px" }}
-                              className="rounded-lg overflow-hidden"
-                            >
-                              {editMode[msg.id] && (
-                                <button
-                                  onClick={() =>
-                                    handleRemoveImages(msg.id, index)
-                                  }
-                                >
-                                  Xóa
-                                </button>
-                              )}
-
-                              <img
-                                src={url}
-                                alt={`Uploaded file ${index}`}
-                                className="object-cover w-full h-full"
-                              />
-                            </div>
-                          ))}
                       </div>
-                    )}
-                  </div>
-                  {/* Nút hiển thị thêm/bớt ảnh */}
+                      <textarea
+                        value={editContent[msg.id] || msg.message}
+                        onChange={(e) => setEditContent((prev) => ({ ...prev, [msg.id]: e.target.value }))}
+                        className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-blue-300 text-black resize-none text-sm"
+                        rows={3}
+                      />
+                      <label className="cursor-pointer text-xs text-blue-400 mt-1 block">
+                        <input type="file" ref={fileComment} onChange={(e) => { handleAddNewImagePostEdit(e); }} multiple className="hidden" />
+                        <i className="fa-regular fa-folder-open mr-1"></i> Thêm ảnh
+                      </label>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => handleSaveEdit(msg.id)} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-primary to-blue-500 text-white rounded-full text-sm font-semibold hover:opacity-90 transition-all"><i className="fa-solid fa-check text-xs"></i> Lưu</button>
+                        <button onClick={() => handleCancelEdit(msg.id)} className="flex items-center gap-1.5 px-4 py-2 bg-[#2a2a3e] border border-white/10 text-gray-300 rounded-full text-sm font-semibold hover:bg-[#35354f] transition-all"><i className="fa-solid fa-xmark text-xs"></i> Hủy</button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Ảnh bài viết */}
+                  {!editMode[msg.id] && msg.fileUrls && msg?.fileUrls?.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 mb-3">
+                      {msg.fileUrls
+                        .slice(0, !showAllImages[msg.id] && msg?.fileUrls?.length > 3 ? subImg : msg?.fileUrls?.length)
+                        .map((url, index) => (
+                          <div key={index} className="aspect-square rounded-xl overflow-hidden">
+                            <img src={url} alt={`Uploaded file ${index}`} className="object-cover w-full h-full" />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Toggle ảnh */}
                   {!showAllImages[msg.id] && msg?.fileUrls?.length > subImg ? (
-                    <button onClick={() => handleToggleShowImages(msg.id)}>
-                      Hiển thị thêm
+                    <button onClick={() => handleToggleShowImages(msg.id)} className="text-xs text-primary/80 hover:text-primary mt-1 mb-2 flex items-center gap-1 transition-colors">
+                      <i className="fa-solid fa-chevron-down text-[10px]"></i> Hiển thị thêm
                     </button>
                   ) : msg?.fileUrls?.length > 3 ? (
-                    <button onClick={() => handleToggleShowImages(msg.id)}>
-                      Hiển thị bớt
+                    <button onClick={() => handleToggleShowImages(msg.id)} className="text-xs text-primary/80 hover:text-primary mt-1 mb-2 flex items-center gap-1 transition-colors">
+                      <i className="fa-solid fa-chevron-up text-[10px]"></i> Hiển thị bớt
                     </button>
                   ) : null}
 
-                  {/* Phần Emoji */}
-                  {msg.reactions?.length && (
-                    <div className="flex items-center group space-x-2">
-                      {/* Reaction count with hover effects */}
+                  {/* Reaction count */}
+                  {msg.reactions?.length ? (
+                    <div className="flex items-center group gap-2 mb-2">
                       <div
                         onMouseEnter={handleMouseEnterr}
                         onMouseLeave={handleMouseLeavee}
-                        className="cursor-pointer text-black font-semibold text-lg p-2 rounded-lg bg-gray-200 transition-all group-hover:shadow-xl"
+                        className="cursor-pointer text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-all"
                       >
                         {countReactions(msg.reactions)?.count}
                       </div>
-
-                      {/* Content that fades in when hovered */}
-                      <div className="transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100">
+                      <div className="transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100 text-sm">
                         {countReactions(msg.reactions)?.content}
                       </div>
                     </div>
-                  )}
-                  {/* Phần biểu cảm */}
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="flex items-center space-x-2 relative">
+                  ) : null}
+
+                  {/* Action bar */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-1 relative">
                       <div
                         className="cursor-pointer"
                         onMouseEnter={() => handleMouseEnter(msg.id)}
                         onMouseLeave={handleMouseLeave}
                       >
                         {msg.reactions && msg.reactions.length > 0 ? (
-                          msg.reactions.find(
-                            (reaction) => reaction?.accID === userInfo?.accID
-                          ) ? (
-                            <span
-                              className="cursor-pointer text-2xl text-white"
-                              role="img"
-                              aria-label="reaction"
-                              onClick={() =>
-                                handleSelectReaction(
-                                  msg.id,
-                                  msg.reactions.find(
-                                    (r) => r?.accID === userInfo?.accID
-                                  )?.reaction
-                                )
-                              }
+                          msg.reactions.find((reaction) => reaction?.accID === userInfo?.accID) ? (
+                            <button
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-white text-sm hover:bg-primary/30 transition-all"
+                              onClick={() => handleSelectReaction(msg.id, msg.reactions.find((r) => r?.accID === userInfo?.accID)?.reaction)}
                             >
-                              {
-                                msg.reactions.find(
-                                  (r) => r?.accID === userInfo?.accID
-                                )?.reaction
-                              }
-                            </span>
+                              <span>{msg.reactions.find((r) => r?.accID === userInfo?.accID)?.reaction}</span>
+                              <span className="text-xs text-gray-300">{msg.reactions.length}</span>
+                            </button>
                           ) : (
-                            <span
-                              className="cursor-pointer text-white"
-                              role="img"
-                              aria-label="like"
-                              onClick={() => handleSelectReaction(msg.id, "👍")}
-                            >
-                              <i className="far fa-thumbs-up text-2xl"></i>
-                            </span>
+                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm hover:bg-white/10 hover:text-white transition-all" onClick={() => handleSelectReaction(msg.id, "👍")}>
+                              <i className="far fa-thumbs-up text-sm"></i>
+                              <span className="text-xs">{msg.reactions.length}</span>
+                            </button>
                           )
                         ) : (
-                          <span
-                            className="cursor-pointer text-white"
-                            role="img"
-                            aria-label="like"
-                            onClick={() => handleSelectReaction(msg.id, "👍")}
-                          >
-                            <i className="far fa-thumbs-up text-2xl"></i>
-                          </span>
+                          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm hover:bg-white/10 hover:text-white transition-all" onClick={() => handleSelectReaction(msg.id, "👍")}>
+                            <i className="far fa-thumbs-up text-sm"></i>
+                            <span className="text-xs">Thích</span>
+                          </button>
                         )}
-
                         {showReactions === msg.id && (
-                          <div className="absolute z-10 bg-white shadow-lg rounded-lg p-2 text-2xl flex space-x-2">
-                            {/* Thêm các emoji */}
-                            <span
-                              className="cursor-pointer"
-                              role="img"
-                              aria-label="like"
-                              onClick={() => handleSelectReaction(msg.id, "👍")}
-                            >
-                              👍
-                            </span>
-                            <span
-                              className="cursor-pointer"
-                              role="img"
-                              aria-label="love"
-                              onClick={() => handleSelectReaction(msg.id, "❤️")}
-                            >
-                              ❤️
-                            </span>
-                            <span
-                              className="cursor-pointer"
-                              role="img"
-                              aria-label="haha"
-                              onClick={() => handleSelectReaction(msg.id, "😂")}
-                            >
-                              😂
-                            </span>
-                            <span
-                              className="cursor-pointer"
-                              role="img"
-                              aria-label="sad"
-                              onClick={() => handleSelectReaction(msg.id, "😢")}
-                            >
-                              😢
-                            </span>
-                            <span
-                              className="cursor-pointer"
-                              role="img"
-                              aria-label="angry"
-                              onClick={() => handleSelectReaction(msg.id, "😡")}
-                            >
-                              😡
-                            </span>
+                          <div className="absolute bottom-12 left-0 z-10 bg-[#1e1e2e] border border-white/10 shadow-2xl rounded-2xl px-3 py-2 text-2xl flex gap-3">
+                            {["👍", "❤️", "😂", "😢", "😡"].map((emoji, i) => (
+                              <span
+                                key={i}
+                                className="cursor-pointer hover:scale-125 transition-transform"
+                                role="img"
+                                onClick={() => handleSelectReaction(msg.id, emoji)}
+                              >
+                                {emoji}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>
-                      <div className="text-white"></div>
                     </div>
-                    <div
-                      className="text-blue-500 cursor-pointer"
+                    <button
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm hover:bg-white/10 hover:text-white transition-all"
                       onClick={() => handleToggleCommentBox(msg.id)}
                     >
-                      <i className="fad fa-comment-lines text-2xl"></i>
-                    </div>
+                      <i className="fad fa-comment-lines text-sm"></i>
+                      <span className="text-xs">{msg.comments?.length > 0 ? msg.comments.length : "Bình luận"}</span>
+                    </button>
                   </div>
 
-                  {/* Phần bình luận */}
+                  {/* Bình luận */}
                   {showCommentBox[msg.id] && (
-                    <div className="mt-4">
-                      <div>
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <div className="flex flex-col gap-3">
                         {msg.comments?.map((comment, index) => (
-                          <div
-                            key={index}
-                            className="border-t border-gray-200 mt-2 pt-2 relative"
-                          >
-                            <div className="flex justify-between">
-                              <div className="flex items-center gap-4">
-                              <img src={comment.userInfo.avatar} className="w-[40px] h-[40px] rounded-full object-cover"/>
-                              <div className="text-white text-sm font-semibold">
-                                {comment.userInfo.fullName}
+                          <div key={index} className="bg-[#2a2a3e] border border-white/10 rounded-xl p-3">
+                            <div className="flex justify-between items-center mb-1.5">
+                              <div className="flex items-center gap-2">
+                                <img src={comment.userInfo.avatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="" />
+                                <span className="text-white text-sm font-semibold">{comment.userInfo.fullName}</span>
                               </div>
-                              </div>
-                        
-                              <div className="text-white text-sm">
-                                {new Date(
-                                  comment.timestamp
-                                ).toLocaleDateString()}{" "}
-                                {new Date(comment.timestamp).toLocaleTimeString(
-                                  [],
-                                  { hour: "2-digit", minute: "2-digit" }
-                                )}
-                              </div>
+                              <span className="text-gray-400 text-[11px]">
+                                {new Date(comment.timestamp).toLocaleDateString()}{" "}
+                                {new Date(comment.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
                             </div>
-
-                            {/* Kiểm tra nếu đang ở chế độ chỉnh sửa bình luận */}
-                            {editCommentMode.postId === msg.id &&
-                            editCommentMode.commentId === comment.id &&
-                            comment.userInfo?.accID === userInfo?.accID ? (
+                            {editCommentMode.postId === msg.id && editCommentMode.commentId === comment.id && comment.userInfo?.accID === userInfo?.accID ? (
                               <>
-                                <div>
-                                  {currentFileComment?.length > 0 &&
-                                    currentFileComment.map((item, index) => (
-                                      <div>
-                                        <img
-                                          key={index}
-                                          className="w-[80px] h-[80px] rounded-xl object-contain"
-                                          src={item}
-                                          alt="comment attachment"
-                                        />
-                                        <span
-                                          className=" text-black bg-red-500 text-white rounded-xl p-2"
-                                          onClick={(e) =>
-                                            handleRemoveEditImageComment(index)
-                                          }
-                                        >
-                                          Xoa
-                                        </span>
-                                      </div>
-                                    ))}
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {currentFileComment?.length > 0 && currentFileComment.map((item, index) => (
+                                    <div key={index} className="relative">
+                                      <img className="w-[70px] h-[70px] rounded-xl object-cover" src={item} alt="comment attachment" />
+                                      <span
+                                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] cursor-pointer"
+                                        onClick={(e) => handleRemoveEditImageComment(index)}
+                                      >
+                                        ✕
+                                      </span>
+                                    </div>
+                                  ))}
                                 </div>
                                 <textarea
-                                  value={
-                                    editCommentContent.currentComment ||
-                                    comment.comment
-                                  }
-                                  onChange={(e) =>
-                                    setEditCommentContent({
-                                      currentComment: e.target.value,
-                                    })
-                                  }
-                                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 mt-2 text-black"
+                                  value={editCommentContent.currentComment || comment.comment}
+                                  onChange={(e) => setEditCommentContent({ currentComment: e.target.value })}
+                                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-blue-300 text-black resize-none text-sm"
+                                  rows={2}
                                 />
-                                <label className="cursor-pointer">
-                                  <input
-                                    type="file"
-                                    ref={fileComment}
-                                    onChange={(e) => {
-                                      handleAddNewEditCommentFile(e);
-                                    }}
-                                    multiple
-                                  />
+                                <label className="cursor-pointer text-xs text-blue-400 block mt-1">
+                                  <input type="file" ref={fileComment} onChange={(e) => { handleAddNewEditCommentFile(e); }} multiple className="hidden" />
+                                  <i className="fa-regular fa-folder-open mr-1"></i> Thêm ảnh
                                 </label>
-                                <button
-                                  onClick={
-                                    () =>
-                                      handleSaveEditComment(msg.id, comment.id) //cc
-                                  }
-                                  className="bg-blue-500 text-white p-2 rounded-lg shadow-lg mt-2 hover:bg-blue-400"
-                                >
-                                  Lưu
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleCancelEditComment(comment.id)
-                                  }
-                                  className="bg-gray-300 text-white p-2 rounded-lg shadow-lg mt-2 hover:bg-gray-400 ml-2"
-                                >
-                                  Hủy
-                                </button>
+                                <div className="flex gap-2 mt-2">
+                                  <button onClick={() => handleSaveEditComment(msg.id, comment.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-primary to-blue-500 text-white rounded-full text-xs font-semibold hover:opacity-90 transition-all"><i className="fa-solid fa-check text-[10px]"></i> Lưu</button>
+                                  <button onClick={() => handleCancelEditComment(comment.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2a2a3e] border border-white/10 text-gray-300 rounded-full text-xs font-semibold hover:bg-[#35354f] transition-all"><i className="fa-solid fa-xmark text-[10px]"></i> Hủy</button>
+                                </div>
                               </>
                             ) : (
                               <div>
-                                {" "}
-                                <div className="flex gap-4">
-                                  {comment?.fileUrls?.length > 0 &&
-                                    comment.fileUrls.map((item, index) => (
-                                      <img
-                                        key={index}
-                                        className="w-[80px] h-[80px] rounded-xl object-contain"
-                                        src={item}
-                                        alt="comment attachment"
-                                      />
-                                    ))}
+                                <div className="flex flex-wrap gap-2 mb-1">
+                                  {comment?.fileUrls?.length > 0 && comment.fileUrls.map((item, index) => (
+                                    <img key={index} className="w-[70px] h-[70px] rounded-xl object-cover" src={item} alt="comment attachment" />
+                                  ))}
                                 </div>
-                                <p className="text-white mt-1">
+                                <p className="text-gray-200 text-sm leading-relaxed">
                                   {comment.comment}
-                                  {comment.edited && (
-                                    <span className="text-sm text-white">
-                                      {" "}
-                                      (đã chỉnh sửa)
-                                    </span>
-                                  )}
+                                  {comment.edited && <span className="text-xs text-gray-400 ml-1">(đã chỉnh sửa)</span>}
                                 </p>
                               </div>
                             )}
-
                             {/* Nút chỉnh sửa chỉ hiển thị nếu là bình luận của người dùng */}
                             {/* {comment.userInfo?.accID === userInfo?.accID && ( //cc
                               <button
                                 onClick={() => {
                                   setPrevComment(comment.comment);
                                   setCurrentFileComment(comment?.fileUrls);
-                                  console.log("Editing comment:", comment); // kiểm tra xem có đủ dữ liệu chưa
-                                  handleEditComment(
-                                    msg.id,
-                                    comment.id,
-                                    comment.comment
-                                  );
+                                  console.log("Editing comment:", comment);
+                                  handleEditComment(msg.id, comment.id, comment.comment);
                                 }}
                                 className="text-blue-500 text-sm mt-1"
                               >
                                 Chỉnh sửa
                               </button>
                             )} */}
-                            {/* Nút "Xóa bình luận" chỉ hiển thị nếu người dùng là người đăng hoặc là admin */}
-                            {comment.userInfo?.accID === userInfo?.accID ||
-                            userInfo?.role === "ADMIN" ? (
+                            {(comment.userInfo?.accID === userInfo?.accID || userInfo?.role === "ADMIN") && (
                               <button
-                                onClick={() =>
-                                  deleteComment(msg.id, comment.id)
-                                }
-                                className="text-red-500 text-sm mt-1"
+                                onClick={() => deleteComment(msg.id, comment.id)}
+                                className="mt-2 flex items-center gap-1 text-[11px] text-red-400/70 hover:text-red-400 transition-colors"
                               >
-                                Xóa bình luận
+                                <i className="fa-regular fa-trash-can text-[10px]"></i> Xóa
                               </button>
-                            ) : null}
-
-                            {comment.fileUrl && (
-                              <img
-                                src={comment.fileUrl}
-                                alt="comment attachment"
-                              />
                             )}
+                            {comment.fileUrl && <img src={comment.fileUrl} alt="comment attachment" className="mt-2 rounded-lg max-w-full" />}
                           </div>
                         ))}
                       </div>
-                      {tempCommentIMGs[msg.id]?.map((img, index) => (
-                        <div
-                          key={index}
-                          className="w-[60px] h-[60px] relative bg-[#fafafa] border-dotted rounded-xl border-[2px] border-sky-500 flex items-center justify-center transition-transform duration-300 hover:scale-105"
-                        >
-                          <img
-                            src={img}
-                            alt="Selected preview"
-                            className="object-cover w-full h-full"
-                          />
-                          <button
-                            onClick={() =>
-                              handleRemoveCommentImage(msg.id, index)
-                            } // Thêm hàm xóa ảnh
-                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                          >
-                            X
-                          </button>
-                        </div>
-                      ))}
+
+                      {/* Preview ảnh comment */}
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {tempCommentIMGs[msg.id]?.map((img, index) => (
+                          <div key={index} className="w-[52px] h-[52px] relative rounded-xl overflow-hidden border-2 border-sky-500">
+                            <img src={img} alt="Selected preview" className="object-cover w-full h-full" />
+                            <button
+                              onClick={() => handleRemoveCommentImage(msg.id, index)}
+                              className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
 
                       <textarea
-                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 mt-2 text-black"
+                        className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-blue-300 mt-3 text-black resize-none text-sm"
                         rows="2"
                         placeholder="Nhập bình luận..."
                         value={commentInput[msg.id] || ""}
-                        onChange={(e) =>
-                          setCommentInput((prev) => ({
-                            ...prev,
-                            [msg.id]: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setCommentInput((prev) => ({ ...prev, [msg.id]: e.target.value }))}
                       />
-                      <div className="flex items-center space-x-4 mt-2">
-                        {/* Nút chọn file */}
-                        <label className="cursor-pointer">
-                          <i className="fa-regular fa-folder-open mr-2"></i>
+                      <div className="flex items-center gap-2 sm:gap-3 mt-2">
+                        <label className="cursor-pointer text-gray-300 hover:text-white transition-colors">
+                          <i className="fa-regular fa-folder-open text-lg"></i>
                           <input
                             type="file"
                             ref={fileComment}
-                            onChange={(e) => {
-                              handleCommentFileChange(e, msg.id);
-                              setCommentFile((prev) => ({
-                                ...prev,
-                                [msg.id]: e.target.files[0],
-                              }));
-                            }}
+                            onChange={(e) => { handleCommentFileChange(e, msg.id); setCommentFile((prev) => ({ ...prev, [msg.id]: e.target.files[0] })); }}
                             className="hidden"
                             multiple
                           />
                         </label>
-
-                        {/* Nút chọn emoji */}
-                        <button
-                          onClick={() => setShowEmojiPickerCmt(msg.id)}
-                          className="w-[60px] h-[60px] bg-gray-200 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-transform duration-300 hover:scale-105"
-                        >
-                          😀
-                        </button>
-
-                        {/* Bảng chọn emoji */}
-                        {showEmojiPickerCmt === msg.id && (
-                          <div
-                            ref={emojiPickerRef}
-                            className="absolute z-[99950]"
-                          >
-                            <EmojiPicker
-                              onEmojiClick={(emoji) =>
-                                setCommentInput((prev) => ({
-                                  ...prev,
-                                  [msg.id]: (prev[msg.id] || "") + emoji.emoji, // Thêm chuỗi rỗng nếu undefined
-                                }))
-                              }
-                            />
-                          </div>
-                        )}
-
-                        {/* Nút gửi bình luận */}
                         <button
                           type="button"
-                          className="bg-blue-500 text-white p-2 rounded-lg shadow-lg hover:bg-blue-400"
+                          className="ml-auto flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-blue-500 text-white rounded-full text-sm font-semibold shadow-lg hover:opacity-90 hover:scale-105 transition-all flex-shrink-0"
                           onClick={() => handleSendComment(msg.id)}
                         >
-                          <i className="fad fa-paper-plane fa-spin  yellow"></i>
+                          <i className="fad fa-paper-plane text-sm"></i>
+                          <span>Gửi</span>
                         </button>
                       </div>
                     </div>
@@ -1556,7 +1204,70 @@ function Social() {
                 </div>
               ))}
           </div>
-        </div>
+          </div>{/* end feed column */}
+
+          {/* Sidebar */}
+          <div className="hidden lg:flex flex-col gap-4 w-[260px] xl:w-[300px] flex-shrink-0 sticky top-24">
+
+            {/* User card */}
+            <div className="bg-[#1e1e2e] border border-white/10 rounded-2xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <img src={userInfo?.avatar} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="" />
+                <div>
+                  <div className="text-white font-semibold text-sm">{userInfo?.fullName}</div>
+                  <div className="text-gray-400 text-xs">ID: {userInfo?.accID}</div>
+                </div>
+              </div>
+              <div className="border-t border-white/10 pt-3 flex justify-between text-center">
+                <div>
+                  <div className="text-white font-bold text-lg">{messages.filter(m => m.userInfo?.accID === userInfo?.accID).length}</div>
+                  <div className="text-gray-400 text-xs">Bài viết</div>
+                </div>
+                <div>
+                  <div className="text-white font-bold text-lg">{messages.reduce((acc, m) => acc + (m.reactions?.length || 0), 0)}</div>
+                  <div className="text-gray-400 text-xs">Lượt thích</div>
+                </div>
+                <div>
+                  <div className="text-white font-bold text-lg">{messages.reduce((acc, m) => acc + (m.comments?.length || 0), 0)}</div>
+                  <div className="text-gray-400 text-xs">Bình luận</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Trending hashtags */}
+            {trendingHashtags.length > 0 && (
+              <div className="bg-[#1e1e2e] border border-white/10 rounded-2xl p-4">
+                <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+                  <span>🔥</span> Đang thịnh hành
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {trendingHashtags.map(([tag, count]) => (
+                    <button
+                      key={tag}
+                      onClick={() => { setCurrentHashtag(tag); setHiddenSearch(false); }}
+                      className="flex justify-between items-center px-3 py-2 rounded-xl bg-[#2a2a3e] hover:bg-[#35354f] transition-colors text-left w-full"
+                    >
+                      <span className="text-blue-400 text-sm font-medium">{tag}</span>
+                      <span className="text-gray-500 text-xs">{count} bài</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gợi ý */}
+            <div className="bg-[#1e1e2e] border border-white/10 rounded-2xl p-4">
+              <h3 className="text-white font-bold text-sm mb-3">💡 Mẹo hay</h3>
+              <ul className="text-gray-400 text-xs flex flex-col gap-2">
+                <li className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span> Dùng <span className="text-blue-400">#hashtag</span> để phân loại bài viết</li>
+                <li className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span> Nhấn vào hashtag để xem bài viết cùng chủ đề</li>
+                <li className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span> Hover vào thời gian để xem giờ cụ thể</li>
+              </ul>
+            </div>
+
+          </div>{/* end sidebar */}
+
+        </div>{/* end flex row */}
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ export default function Header() {
   const [searchInput, setSearchInput] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentURL, setCurrentURL] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,17 +61,21 @@ export default function Header() {
     };
   }, []);
 
+  // Lưu lại URL hiện tại (trước khi tìm kiếm) để có thể quay lại sau
   useEffect(() => {
-    if (!searchTerm && !location.pathname.includes("/search")) {
+    if (!location.pathname.includes("/search")) {
       setCurrentURL(location.pathname);
     }
-    
-      if (searchTerm.trim()) {
+  }, [location.pathname]);
+
+  // Chỉ navigate khi searchTerm thay đổi
+  useEffect(() => {
+    if (searchTerm.trim()) {
       navigate(`/search/${searchTerm}`);
     } else if (currentURL && location.pathname.includes("/search")) {
       navigate(currentURL);
     }
-  }, [searchTerm,location.pathname]);
+  }, [searchTerm]);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -135,9 +140,9 @@ export default function Header() {
         }`}
       >
         {" "}
-        <div className="w-full px-14">
-          <div className="flex justify-between gap-8 items-center min-h-[50px]">
-            <div className="flex gap-12 min-h-[50px]">
+        <div className="w-full px-4 md:px-14">
+          <div className="flex justify-between gap-4 md:gap-8 items-center min-h-[50px]">
+            <div className="flex gap-4 md:gap-12 min-h-[50px] items-center">
               <Link to="/" className="block py-2.5">
                 <img
                   src={Logo}
@@ -145,7 +150,7 @@ export default function Header() {
                   className="cursor-pointer h-[26px] min-w-[106px] object-contain"
                 />
               </Link>
-              <div className="flex flex-1 gap-x-6 flex-wrap items-center font-oswald">
+              <div className="hidden md:flex flex-1 gap-x-6 flex-wrap items-center font-oswald">
                 <div className="relative group">
                   <Link 
                     to={'/type/EBOOK'}
@@ -198,7 +203,7 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
               </div>
             </div>
 
-            <div className="flex gap-6 items-center ">
+            <div className="flex gap-3 md:gap-6 items-center ">
               <div className="relative min-h-[16px]">
                 <div
                   ref={inputRef}
@@ -208,7 +213,7 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
                       : "px-3 "
                   }`}
                   style={{
-                    width: searchInput ? "250px" : "40px",
+                    width: searchInput ? "min(250px, 50vw)" : "40px",
                     transition: searchInput ? "width 0.7 ease-in-out" : "",
                   }}
                 >
@@ -231,6 +236,9 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
                   <i
                     className="fa-sharp-duotone fa-solid fa-magnifying-glass text-primary cursor-pointer absolute right-[6px]"
                     onClick={() => {
+                      if (searchInput) {
+                        setSearchTerm("");
+                      }
                       setSearchInput(!searchInput);
                     }}
                   ></i>
@@ -238,7 +246,7 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
               </div>  
               <Link
                 to="/member-ship"
-                className="cursor-pointer bg-package border border-[#FC0] w-[93px] h-[32px]  rounded-2xl px-2.5 py-[5.25px] bg-[rgba(255,204,0,0.16)] min-w-[92px] flex items-center"
+                className="hidden md:flex cursor-pointer bg-package border border-[#FC0] w-[93px] h-[32px]  rounded-2xl px-2.5 py-[5.25px] bg-[rgba(255,204,0,0.16)] min-w-[92px] items-center"
               >
                 <img
                   src="https://waka.vn/svgs/icon-vip.svg"
@@ -272,7 +280,7 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
                 {!isLogin ? (
                   <>
                     <a
-                      className="bg-white-overlay text-white border-[2px] border-white-overlay py-2 font-bold px-4 cursor-pointer rounded-full text-white-default text-16-16 button-secondary whitespace-nowrap py-2"
+                      className="hidden sm:block bg-white-overlay text-white border-[2px] border-white-overlay py-2 font-bold px-4 cursor-pointer rounded-full text-white-default text-16-16 button-secondary whitespace-nowrap"
                       onClick={() => {
                         setModalStatus("");
                         setShowModal(true);
@@ -281,13 +289,14 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
                       Đăng ký
                     </a>
                     <a
-                      className="text-white font-bold text-16-16 py-2 rounded-full cursor-pointer flex items-center justify-center whitespace-nowrap px-4  button-primary bg-primary"
+                      className="text-white font-bold text-16-16 py-2 rounded-full cursor-pointer flex items-center justify-center whitespace-nowrap px-3 sm:px-4 button-primary bg-primary"
                       onClick={() => {
                         setShowModal(true);
                         setModalStatus("login");
                       }}
                     >
-                      Đăng nhập
+                      <span className="hidden sm:inline">Đăng nhập</span>
+                      <i className="sm:hidden fa-solid fa-right-to-bracket text-[18px]"></i>
                     </a>
                   </>
                 ) : (
@@ -377,8 +386,29 @@ className="font-medium text-base text-white cursor-pointer whitespace-nowrap hov
 
                 {/* ----------------------------------------------------------------- */}
               </div>
+              {/* Hamburger button - mobile only */}
+              <button
+                className="md:hidden flex flex-col justify-center items-center gap-[5px] w-8 h-8"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}></span>
+                <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}></span>
+              </button>
             </div>
           </div>
+          {/* Mobile menu dropdown */}
+          {mobileMenuOpen && (
+            <div className="md:hidden bg-background-book backdrop-blur border-t border-gray-700 py-4 flex flex-col gap-2 font-oswald">
+              <Link to='/type/EBOOK' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl">Sách điện tử</Link>
+              <Link to='/type/PAPERBACK' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl">Sách giấy</Link>
+              <div onClick={() => { if(handleCheckLogin()) { navigate('/deposit'); setMobileMenuOpen(false); } }} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl cursor-pointer">Nạp Tiền</div>
+              <Link to='/social' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl">Diễn Đàng</Link>
+              <Link to='/mini-game' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl">Mini Game</Link>
+              <Link to='/member-ship' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-yellow-400 font-bold hover:bg-gray-800 rounded-xl">⭐ Gói VIP</Link>
+              {isLogin && userInfo?.role === 'ADMIN' && <Link to='/admin' onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-white hover:text-primary hover:bg-gray-800 rounded-xl">Admin Page</Link>}
+            </div>
+          )}
         </div>
       </header>
     </>

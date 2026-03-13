@@ -190,7 +190,7 @@ function calculateAverageStars(bookRates) {
     );
   };
   return (
-    <div className="pt-[72px] px-[64px] bg-black w-full relative">
+    <div className="pt-[72px] px-4 sm:px-8 md:px-12 lg:px-[64px] bg-black w-full relative">
 {showNotification && (
   <FavoriteNotification book={bookDetail?.book} showNotification={showNotification} />
 )}
@@ -202,9 +202,9 @@ function calculateAverageStars(bookRates) {
         <div className="flex">
           <div className="blur-layer-1 absolute top-[206px] right-1/2 z-0"></div>
           <div className="blur-layer-2 absolute -top-[98px] left-1/2 z-0"></div>
-          <div className="flex justify-beetwen mt-3 relative w-[100%]">
-            <div className="relative">
-              <div className="sticky top-[10%] w-[400px] z-20 mr-15">
+          <div className="flex flex-col lg:flex-row justify-beetwen mt-3 relative w-[100%]">
+            <div className="relative w-full lg:w-auto">
+              <div className="sticky top-[10%] w-full lg:w-[400px] z-20 lg:mr-15">
                 <div className="relative w-full">
                   <div className="pt-[150%] relative rounded-xl overflow-hidden mb-10">
                     <img
@@ -217,8 +217,8 @@ function calculateAverageStars(bookRates) {
                 </div>
               </div>
             </div>
-            <div className="px-[32px] text-white font-oswald">
-              <h2 className="text-white font-bold text-[32px]">
+            <div className="flex-1 px-0 lg:px-[32px] mt-6 lg:mt-0 text-white font-oswald">
+              <h2 className="text-white font-bold text-xl sm:text-2xl lg:text-[32px]">
                 {bookDetail?.book?.bookName}
               </h2>
               <div className="flex mt-4">
@@ -298,17 +298,17 @@ function calculateAverageStars(bookRates) {
 
                 <div className="border-[1px] mt-[24px] border-gray-400 "></div>
               </div>
-              <div className="flex justify-around">
+              <div className="flex flex-wrap justify-around gap-y-2">
             {bookDetail?.book?.bookType === "EBOOK" ?  ( 
 
 <Link
 to={`/epubread/${bookDetail?.book?.id}`}
-className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer">
+className="bg-primary w-[160px] sm:w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-3 sm:py-4 text-base sm:text-[20px] mt-[16px] flex rounded-full cursor-pointer">
 <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
 <span>Đọc sách</span>
 </Link>
             ) : 
-            <div onClick={()=>addToCart(id,1)} className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer">
+            <div onClick={()=>addToCart(id,1)} className="bg-primary w-[160px] sm:w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-3 sm:py-4 text-base sm:text-[20px] mt-[16px] flex rounded-full cursor-pointer">
             <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
             <span>Thêm vào giỏ hàng</span>
           </div>}
@@ -328,7 +328,7 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                 setShowPaymentModal(true)
               }
                }
-              className={`${bookDetail?.owned ?  "pointer-events-none	opacity-70 cursor-default" : ""} bg-primary w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-4 text-[20px] mt-[16px] flex rounded-full cursor-pointer`}>
+              className={`${bookDetail?.owned ?  "pointer-events-none	opacity-70 cursor-default" : ""} bg-primary w-[160px] sm:w-[200px] justify-center items-center font-bold hover:bg-white hover:text-primary hover:scale-110 transition-scale ease-in-out duration-200 px-2 py-3 sm:py-4 text-base sm:text-[20px] mt-[16px] flex rounded-full cursor-pointer`}>
               <i className="fa-duotone mr-2 fa-solid fa-book-open-reader"></i>{" "}
               <span>{bookDetail?.owned ? "Đã sở hữu" : "Mua Nội Dung" }</span>
             </div>
@@ -377,11 +377,11 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                   </div>
                 </div> */}
               </div>
-              <div className="mt-4 text-[24px] font-bold">
+              <div className="mt-4 text-lg sm:text-xl lg:text-[24px] font-bold">
                 Tóm tắt nội dung
                 </div>
               <div
-                className={`w-[420px] mt-4${showMore ? "" : " line-clamp-3"}`}
+                className={`w-full mt-4${showMore ? "" : " line-clamp-3"}`}
               >
                
                {bookDetail?.book?.description}
@@ -393,10 +393,10 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
                 {!showMore ? "Xem thêm" : "Rút gọn"}
               </span>
 
-              <div className="mt-3 text-[24px]">
-                Độc giả nói gì về “Nguyện cùng em đi qua gió sương”
+              <div className="mt-3 text-lg sm:text-xl lg:text-[24px]">
+                Độc giả nói gì về "Nguyện cùng em đi qua gió sương"
               </div>
-              <div className="p-4 bg-gray-900 rounded-lg mt-2 w-[550px]">
+              <div className="p-4 bg-gray-900 rounded-lg mt-2 w-full">
                 <div>
                   <div className="flex space-x-4 text-green-400 mb-4">
                 
@@ -492,7 +492,7 @@ className="bg-primary w-[200px] justify-center items-center font-bold hover:bg-w
             </div>
           </div>
         </div>
-        <div className="text-[24px] font-bold ml-2 mt-4 text-white">
+        <div className="text-xl sm:text-[24px] font-bold ml-2 mt-4 text-white">
           Có thể bạn thích
         </div>
 { listBookLike &&        <BookSlider listBook={listBookLike}/>}

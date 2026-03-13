@@ -73,8 +73,8 @@ export default function AccountSecurity() {
             Email
           </span>
         </div>
-        <div className="font-rubik text-primary text-[14px] ml-1 mt-2">
-          Đã xác thực
+        <div className={`font-rubik text-[14px] ml-1 mt-2 ${userInfo?.email ? "text-primary" : "text-gray-500"}`}>
+          {userInfo?.email ? "Đã xác thực" : "Chưa liên kết"}
         </div>
       </div>
 

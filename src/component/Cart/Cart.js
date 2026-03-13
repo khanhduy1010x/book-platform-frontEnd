@@ -162,7 +162,7 @@ const Cart = () => {
                     </td>
                   </tr>
                 ))}
-                {  listCart.cartItems.length === 0  &&
+                {  (!listCart?.cartItems || listCart.cartItems.length === 0)  &&
  <tr>
 
  <td colSpan={6} className="">
@@ -242,7 +242,7 @@ const Cart = () => {
        >Chọn voucher  </button> 
        
              </div>
-          <button disabled={( listCart.cartItems.length === 0 )} className="btn btn-primary disabled:opacity-50 w-full mt-6 bg-primary text-white py-2 rounded-full"
+          <button disabled={(!listCart?.cartItems || listCart.cartItems.length === 0)} className="btn btn-primary disabled:opacity-50 w-full mt-6 bg-primary text-white py-2 rounded-full"
           onClick={handlePaymentCartButton}
           >
             Mua hàng

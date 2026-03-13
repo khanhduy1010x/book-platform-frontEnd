@@ -18,7 +18,7 @@ export default function BookHome() {
     return (
 
       <div className="bg-[#121214] ">
-          { isLogin &&  listRecommend && listRecommend.length>0 && <div className="w-full  container-block bg-[#121214] pt-[60px] pl-[60px] pr-[60px] ">
+          { isLogin &&  listRecommend && listRecommend.length>0 && <div className="w-full container-block bg-[#121214] pt-10 px-4 sm:px-8 md:px-[60px]">
           
           <div className="flex items-center w-max mb-6">
             <h2 className="text-white text-4xl text-[1.625rem] font-rubik font-bold cursor-pointer">
@@ -33,7 +33,7 @@ export default function BookHome() {
         
       {
         listBookHome.filter((item) => item?.listBook?.length > 0).map((item,index) => (
-          <div key={index} className="w-full  container-block bg-[#121214] pt-[60px] pl-[60px] pr-[60px] ">
+          <div key={index} className="w-full container-block bg-[#121214] pt-10 px-4 sm:px-8 md:px-[60px]">
           
           <div className="flex items-center w-max mb-6">
             <h2 className="text-white text-4xl text-[1.625rem] font-rubik font-bold cursor-pointer">

@@ -6,12 +6,14 @@ import { getDatabase, ref, get, update, push, onValue, remove, set,onDisconnect 
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA_mXFarusK6wPKvTQhto1NMkthSJusQIY",
-  authDomain: "duancuoi-55096.firebaseapp.com",
-  projectId: "duancuoi-55096",
-  storageBucket: "duancuoi-55096.appspot.com",
-  messagingSenderId: "991422442200",
-  appId: "1:991422442200:web:817014cb6d19c5a3ca05ad"
+  apiKey: "AIzaSyAQGypTleXP89sagSbb4jUjmG8ORPhb5YU",
+  authDomain: "book4-e8fe8.firebaseapp.com",
+  projectId: "book4-e8fe8",
+storageBucket: "book4-e8fe8.appspot.com",
+    databaseURL: "https://book4-e8fe8-default-rtdb.asia-southeast1.firebasedatabase.app", 
+  messagingSenderId: "666188564095",
+  appId: "1:666188564095:web:89868613efbcee6673214a",
+  measurementId: "G-BMFRHQ6HLQ"
 };
 
 // Initialize Firebase

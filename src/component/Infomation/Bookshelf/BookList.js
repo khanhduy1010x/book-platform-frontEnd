@@ -26,54 +26,54 @@ export default function BookList({isSelectType}) {
         }, 900);
         return () => clearTimeout(delayFetch);
     },[isSelectType])
+
+    const emptyMessages = {
+        "Đang đọc": { icon: "fa-solid fa-book-open", text: "Bạn chưa đọc cuốn sách nào" },
+        "Sách đã mua": { icon: "fa-solid fa-bag-shopping", text: "Bạn chưa mua cuốn sách nào" },
+        "Sách yêu thích": { icon: "fa-solid fa-heart", text: "Bạn chưa có sách yêu thích nào" },
+    };
+
     return (
         <>
-        {isLoading ? (<div className="flex flex-col h-[450px] items-center justify-center">
-        <img src={load}/>
-        <div>Loading ....</div>
-        </div>) : (
-
-<div className="grid 2xl:grid-cols-6 grid-cols-4 gap-10 mt-6 mb-6 font-oswald">
-{
-  listBook.length > 0 &&  listBook?.map((item,index) =>
-(
-    <Link to={`/detail/${item?.book?.id}`}  key={index} className="rounded-lg overflow-hidden flex justify-center "> 
-    <div className="group relative flex justify-center flex-col ">
-    <div className="inline-block mb-2 relative show-tooltip lg:w-52  flex justify-center flex-col xl:w-56 2xl:w-[265px] cursor-pointer float-left lg:w-full xl:w-full 2xl:w-full w-full col-span-1">
-    <div className="w-[170px] h-[260px]  rounded-xl overflow-hidden  flex justify-center flex-col">
-      
-        <div className="transition-transform duration-1000 ease-in-out group-hover:scale-[120%]  flex justify-center flex-col w-full h-full ">
-        <div className="absolute top-0 left-0 w-full h-full book-border z-10"></div>
-
-<img className="object-fit rounded-lg  w-full h-full " src={item?.book?.coverImage}/>
-
-
-
-        </div>
-  
-    </div>
-    </div>
-    <div className="font-bold text-white  text-[16px] group-hover:text-primary  flex justify-center flex-col"><span className="text-center">{item?.book?.bookName}</span></div>
-    {
-        item.percent >=0   &&    <div className="absolute bottom-10 border border-yellow-200 left-2 w-[155px]  bg-gray-200 rounded-full overflow-hidden z-20">
-        <div
-          className="h-1 bg-primary rounded-full transition-all  duration-500"
-          style={{
-            width: `${item?.percent}%`
-          }}
-        ></div>
-      </div>
-    }
- 
-    </div>
-
-</Link>
-))
-}
-
-</div>
+        {isLoading ? (
+            <div className="flex flex-col h-[450px] items-center justify-center">
+                <img src={load}/>
+                <div>Loading ....</div>
+            </div>
+        ) : listBook.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[400px] gap-4 text-gray-500">
+                <i className={`${emptyMessages[isSelectType]?.icon} text-[56px] text-gray-600`}></i>
+                <p className="text-[18px] font-oswald">{emptyMessages[isSelectType]?.text}</p>
+                <Link to="/" className="mt-2 px-6 py-2 bg-primary rounded-full text-white text-[14px] font-bold hover:scale-105 transition-transform duration-200">
+                    Khám phá sách
+                </Link>
+            </div>
+        ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 mt-6 mb-6 font-oswald">
+            {listBook?.map((item,index) => (
+                <Link to={`/detail/${item?.book?.id}`} key={index} className="group flex flex-col"> 
+                <div className="relative w-full">
+                    {/* Fixed aspect ratio image box */}
+                    <div className="relative w-full pt-[150%] rounded-xl overflow-hidden">
+                        <div className="absolute inset-0 transition-transform duration-1000 ease-in-out group-hover:scale-[110%]">
+                            <div className="absolute top-0 left-0 w-full h-full book-border z-10"></div>
+                            <img className="object-cover w-full h-full rounded-xl" src={item?.book?.coverImage}/>
+                        </div>
+                    </div>
+                    {/* Progress bar */}
+                    {item.percent >= 0 && (
+                        <div className="absolute bottom-2 left-2 right-2 border border-yellow-200 bg-gray-200 rounded-full overflow-hidden z-20">
+                            <div className="h-1 bg-primary rounded-full transition-all duration-500" style={{ width: `${item?.percent}%` }}></div>
+                        </div>
+                    )}
+                </div>
+                <div className="font-bold text-white text-[14px] group-hover:text-primary mt-2 text-center line-clamp-2 leading-snug">
+                    {item?.book?.bookName}
+                </div>
+                </Link>
+            ))}
+            </div>
         )}
         </>
-       
     )
 }

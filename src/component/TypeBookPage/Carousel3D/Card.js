@@ -12,12 +12,12 @@ function Card({ book }) {
   });
   return (
     <animated.div
-      className="bg-white flex flex-col cursor-pointer w-[16rem] pt-0 pr-2 pb-2 pl-2  rounded-xl"
+      className="bg-white flex flex-col cursor-pointer w-36 sm:w-48 md:w-[16rem] pt-0 pr-2 pb-2 pl-2  rounded-xl"
       style={props3}
       onMouseEnter={() => setShown(true)}
       onMouseLeave={() => setShown(false)}
     >
-      <div className="mt-[-30%]  !max-w-[240px] !min-w-[240px] !h-[320px] rounded-2xl overflow-hidden flex justify-center items-center">
+      <div className="mt-[-30%] !max-w-[240px] !min-w-0 w-full sm:!min-w-[160px] md:!min-w-[240px] h-[180px] sm:h-[240px] md:!h-[320px] rounded-2xl overflow-hidden flex justify-center items-center">
       <img
         src={book.coverImage}
         className="!object-cover w-full h-full rounded-2xl"

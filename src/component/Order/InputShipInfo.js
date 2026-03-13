@@ -5,7 +5,7 @@ import ModalCOD from "./ModalCODE";
 import QrCodeModal from "./QrCodeModal";
 import { Navigate, useNavigate } from "react-router-dom";
 
-const URL_PROVINCES = "https://provinces.open-api.vn/api";
+const URL_PROVINCES = "https://provinces.open-api.vn/api/v2";
 
 export function InputShipInfo() {
   const {
@@ -20,13 +20,10 @@ export function InputShipInfo() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const[invalidAmount, setInvalidAmount] = useState(false);
   const provinceRef = useRef(null);
-  const districtRef = useRef(null);
   const wardRef = useRef(null);
   const [showListProvince, setShowListProvince] = useState(false);
-  const [showListDistricts, setShowListDistricts] = useState(false);
   const [showListWards, setShowListWards] = useState(false);
   const [listProvinces, setListProvinces] = useState([]);
-  const [listDistricts, setListDistricts] = useState([]);
   const [listWards, setListWards] = useState([]);
   const [shipProvince, setShipProvince] = useState("");
   const [shipDistricts, setShipDistricts] = useState("");
@@ -53,7 +50,7 @@ export function InputShipInfo() {
   useEffect(() => {
     async function fetchProvinces() {
       try {
-        const response = await fetch(`${URL_PROVINCES}/p`);
+        const response = await fetch(`${URL_PROVINCES}/p/`);
         const data = await response.json();
         setListProvinces(data);
       } catch (error) {
@@ -63,25 +60,14 @@ export function InputShipInfo() {
     fetchProvinces();
   }, []);
 
-  const fetchDistricts = async (provinceCode) => {
+  // API v2: fetch wards directly by province code (no district level)
+  const fetchWards = async (provinceCode) => {
     try {
       const response = await fetch(
-        `${URL_PROVINCES}/p/${provinceCode}?depth=2`
+        `${URL_PROVINCES}/w/?province=${provinceCode}`
       );
       const data = await response.json();
-      setListDistricts(data.districts);
-    } catch (error) {
-      console.error("Error fetching districts:", error);
-    }
-  };
-
-  const fetchWards = async (districtCode) => {
-    try {
-      const response = await fetch(
-        `${URL_PROVINCES}/d/${districtCode}?depth=2`
-      );
-      const data = await response.json();
-      setListWards(data.wards);
+      setListWards(data);
     } catch (error) {
       console.error("Error fetching wards:", error);
     }
@@ -100,10 +86,6 @@ export function InputShipInfo() {
     }
     if (!shipProvince) {
       newErrors.shipProvince = "Vui lòng chọn Tỉnh/Thành phố";
-      isOk = false;
-    }
-    if (!shipDistricts) {
-      newErrors.shipDistricts = "Vui lòng chọn Huyện";
       isOk = false;
     }
     if (!shipWards) {
@@ -168,14 +150,6 @@ export function InputShipInfo() {
       }
 
       if (
-        showListDistricts &&
-        districtRef.current &&
-        !districtRef.current.contains(event.target)
-      ) {
-        setShowListDistricts(false);
-      }
-
-      if (
         showListWards &&
         wardRef.current &&
         !wardRef.current.contains(event.target)
@@ -188,7 +162,7 @@ export function InputShipInfo() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showListProvince, showListDistricts, showListWards]);
+  }, [showListProvince, showListWards]);
   const handleClickBuyButton = async() => {
     if(paymentMethod === "ONLINE") {
       setShowConfirmModal(true);
@@ -389,11 +363,11 @@ getListCart();
                             key={province.code}
                             onClick={() => {
                               setShipProvince(province.name);
-                              fetchDistricts(province.code);
+                              fetchWards(province.code);
                               setShowListProvince(false);
                               setShipDistricts("");
-                              setShowListDistricts(false);
                               setShipWards("");
+                              setShowListWards(false);
                             }}
                             className="p-2 hover:bg-blue-100 cursor-pointer"
                           >
@@ -403,45 +377,7 @@ getListCart();
                       </ul>
                     )}
                   </div>
-                  <div className="w-full relative">
-                    <label className="block text-sm font-medium text-white">
-                      Huyện
-                    </label>
-                    <input
-                      type="text"
-                      value={shipDistricts || "Nhấn vào để chọn"}
-                      onClick={() => setShowListDistricts(!showListDistricts)}
-                      readOnly
-                      className="w-full mt-1 p-2 border focus:outline-none border-gray-300 rounded-md  focus:ring focus:ring-blue-200 cursor-pointer"
-                    />
-                    {errors.shipDistricts && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.shipDistricts}
-                      </p>
-                    )}
-                    {showListDistricts && (
-                      <ul
-                        ref={districtRef}
-                        className="absolute z-10 w-full bg-white  rounded-md shadow-lg mt-1 max-h-60 overflow-auto"
-                      >
-                        {listDistricts.map((district) => (
-                          <li
-                            key={district.code}
-                            onClick={() => {
-                              setShipDistricts(district.name);
-                              fetchWards(district.code);
-                              setShowListDistricts(false);
-                              setShowListWards(false);
-                              setShipWards("");
-                            }}
-                            className="p-2 hover:bg-blue-100 cursor-pointer"
-                          >
-                            {district.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4">
@@ -687,7 +623,6 @@ getListCart();
                 !(
                   nameShip &&
                   phoneShip &&
-                  shipDistricts &&
                   shipWards &&
                   shipProvince &&
                   detailAddressShip &&

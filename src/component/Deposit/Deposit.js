@@ -4,15 +4,15 @@ import { useAPI } from '../Service/APIContext'
 export default function Deposit() {
     const {userInfo} = useAPI()
     return(
-        <div className="min-h-screen bg-[#121214] font-oswald pt-[70px] w-full flex  justify-center pb-[42px]">
+        <div className="min-h-screen bg-[#121214] font-oswald pt-[70px] w-full flex justify-center pb-[42px] px-4 sm:px-6 lg:px-0">
             <div className="pt-[42px] inline-flex  flex-col items-center ">
-                <div className="text-white text-[42px] font-bold ">
+                <div className="text-white text-xl sm:text-2xl lg:text-[42px] font-bold text-center">
                     <span><i class="fa-light fa-building-columns mr-2 text-primary"></i>Nạp tiền bằng cách chuyển khoản</span>
                 </div>
-            <div className="bg-gray-800 mt-10 w-full p-4 flex rounded-xl py-10">
-                <div className='flex-1 text-white pr-[100px]  pl-5 border-r border-gray-500 w-full whitespace-nowrap'> 
+            <div className="bg-gray-800 mt-10 w-full p-4 flex flex-col lg:flex-row rounded-xl py-10">
+                <div className='flex-1 text-white pr-4 lg:pr-[100px] pl-2 lg:pl-5 border-b lg:border-b-0 lg:border-r border-gray-500 pb-8 lg:pb-0 w-full whitespace-nowrap'> 
                     <div>
-                    <div className="text-[#FF0000] text-[22px]">Chú ý: </div>
+                    <div className="text-[#FF0000] text-lg sm:text-[22px]">Chú ý: </div>
                     <div  className='mt-6 flex flex-col gap-4'>
                     <div >-Điền đúng <span className='text-red-500'>nội dung</span> để được cộng tiền</div>
                     <div >-Số tiền nạp sẽ là <span className='text-red-500'>số tiền bạn chuyển khoản</span></div>
@@ -22,7 +22,7 @@ export default function Deposit() {
                     <div>-Nếu ghi sai nội dung chuyển khoản khoản vui lòng<span className='text-primary'> liên hệ admin</span> </div>
                     </div>
                     </div>
-                    <div className='mt-8 text-[24px] w-full '>
+                    <div className='mt-8 text-lg sm:text-[24px] w-full '>
                         <span className='text-primary'>                        Thông tin liên hệ admin ghi gặp sự cố:
                         </span>
                     <div className='flex gap-8 mt-8'>
@@ -53,14 +53,14 @@ export default function Deposit() {
                     </div>
                     </div>
                 </div>
-                <div className='flex-1 flex flex-col items-center justify-center pl-20 pr-20'>
+                <div className='flex-1 flex flex-col items-center justify-center px-4 sm:px-10 lg:px-20 pt-8 lg:pt-0'>
                     <div className='flex items-center justify-center'>
                     <img   src={`https://img.vietqr.io/image/mbbank-0848150667-print.png?&addInfo=NapBook%20${userInfo?.accID}&accountName=Nguyen%20Khanh%20Duy`}
-                    className='h-[400px] object-contain w-[400px] rounded-lg'
+                    className='h-[280px] sm:h-[350px] lg:h-[400px] object-contain w-[280px] sm:w-[350px] lg:w-[400px] rounded-lg'
                     />
                     </div>
                     <div className='text-white mt-4 flex flex-col items-center justify-center'>
-                    <div className='text-[24px] font-bold'>
+                    <div className='text-lg sm:text-[24px] font-bold'>
                             <span>Thông tin chuyển khoản</span>
                         </div>
                         <div className='mt-4'>

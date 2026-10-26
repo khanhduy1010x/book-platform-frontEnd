@@ -5,28 +5,31 @@ import Footer from "./component/Shared/Footer/Footer";
 import Zalo from "./component/Shared/ChatIcon/Zalo";
 import ChatWeb from "./component/Shared/ChatIcon/ChatWeb";
 import DetailBook from "./component/DetailsBook/DetailBook";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import EpubReader from "./component/Reader/EpubReader";
 import Search from "./component/Search/Search";
 import ListByTypePage from "./component/TypeBookPage/ListByTypePage";
 import InfoPage from "./component/Infomation/InfoPage";
 function App() {
+  const isReading = useLocation().pathname.startsWith("/read/");
   return (
     <>
-      <Zalo />
-      <ChatWeb />
-      <div className="z-[9999] relative">
+      {!isReading && <div className="hidden lg:block"><Zalo /><ChatWeb /></div>}
+      {!isReading && <div className="z-[9999] relative">
         <Header />
-      </div>
+      </div>}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/detail" element={<DetailBook />} />
+        <Route path="/detail/:id" element={<DetailBook />} />
         <Route path="/search" element={<Search/>} />
         <Route path="/type" element={<ListByTypePage/>}/>
         <Route path="/info" element={<InfoPage/>} />
+        <Route path="/read/:id" element={<EpubReader />} />
 
 
       </Routes>
-      <Footer />
+      {!isReading && <Footer />}
     </>
   );
 }

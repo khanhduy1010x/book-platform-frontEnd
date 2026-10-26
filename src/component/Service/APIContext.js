@@ -35,7 +35,7 @@ export function ContextAPI({ children }) {
     name: "",
     otp: "",
   });
-  const BASE_URL = "http://localhost:9999";
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:9999");
 
   // Kiem tra token xem con han khong ( introspect ) 
   const [isFetching, setIsFetching] = useState(false);

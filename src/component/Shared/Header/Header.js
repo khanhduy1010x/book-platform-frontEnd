@@ -4,14 +4,15 @@ import OtpInput from "./OtpInput";
 import { getUser } from "../../Service/LocalStorage";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
-import CategoryHoverDialog from "./CategoryHoverDialog";
 import NotificationDialog from "./NotificationDialog";
 import Oyster from "../../../assets/image/oyter.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAPI } from "../../Service/APIContext";
 export default function Header() {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchInput, setSearchInput] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { setModalStatus, modalStatus,logOut, showModal, setShowModal, isLogin, userInfo } =
     useAPI();
     const handleLogOutSubmit= () => {
@@ -84,9 +85,9 @@ export default function Header() {
         }`}
       >
         {" "}
-        <div className="w-full px-14">
-          <div className="flex justify-between gap-8 items-center min-h-[50px]">
-            <div className="flex gap-12 min-h-[50px]">
+        <div className="w-full px-4 md:px-8 xl:px-14">
+          <div className="flex justify-between gap-2 lg:gap-8 items-center min-h-[50px]">
+            <div className="flex gap-4 lg:gap-12 min-h-[50px]">
               <Link to="/" className="block py-2.5">
                 <img
                   src={Logo}
@@ -94,59 +95,16 @@ export default function Header() {
                   className="cursor-pointer h-[26px] min-w-[106px] object-contain"
                 />
               </Link>
-              <div className="flex flex-1 gap-x-6 flex-wrap items-center font-oswald">
-                <div className="relative group">
-                  <a
-                    href="/ebook"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                  >
-                    Sách điện tử
-                  </a>
-                  <CategoryHoverDialog title={"Sách điện tử"} />
-                </div>
-                <div className="relative group">
-                  <a
-                    href="/sach-noi"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                  >
-                    Sách nói
-                  </a>
-                  <CategoryHoverDialog title={"Sách nói"} />
-                </div>
-                <div className="relative group">
-                  <a
-                    href="/hieu-soi"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                  >
-                    Sách giấy
-                  </a>
-                  <CategoryHoverDialog title={"Sách giấy"} />
-                </div>
-                <div className="relative group">
-                  <a
-                    href="/sach-giay"
-                    className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                  >
-                    Sách tóm tắt
-                  </a>
-                  <CategoryHoverDialog title={"Sách tóm tắt"} />
-                </div>
-                <a
-                  href="/sach-tom-tat"
-                  className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                >
-                  Podcast
-                </a>
-                <a
-                  href="/podcast"
-                  className="font-medium text-base text-white cursor-pointer whitespace-nowrap hover:text-primary"
-                >
-                  Mini Game
-                </a>
+              <div className="hidden lg:flex flex-1 gap-x-6 flex-wrap items-center font-oswald">
+                <Link to="/" className="font-medium text-base text-white whitespace-nowrap hover:text-primary">Sách điện tử</Link>
+                <Link to="/search?category=Tiểu%20thuyết" className="font-medium text-base text-white whitespace-nowrap hover:text-primary">Tiểu thuyết</Link>
+                <Link to="/search?category=Trinh%20thám" className="font-medium text-base text-white whitespace-nowrap hover:text-primary">Trinh thám</Link>
+                <Link to="/search?category=Phiêu%20lưu" className="font-medium text-base text-white whitespace-nowrap hover:text-primary">Phiêu lưu</Link>
+                <Link to="/search?category=Giả%20tưởng" className="font-medium text-base text-white whitespace-nowrap hover:text-primary">Giả tưởng</Link>
               </div>
             </div>
 
-            <div className="flex gap-6 items-center ">
+            <div className="flex gap-2 lg:gap-6 items-center ">
               <div className="relative min-h-[16px]">
                 <div
                   ref={inputRef}
@@ -164,6 +122,11 @@ export default function Header() {
                     <>
                       <input
                         type="text"
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") navigate("/search?q=" + encodeURIComponent(searchTerm.trim()));
+                        }}
                         className="outline-none text-white bg-transparent pl-2"
                         placeholder="Nhập tên sách, tác giả.."
                         autoFocus
@@ -183,20 +146,16 @@ export default function Header() {
                 </div>
               </div>
 
-              <a
-                href="/package-plan"
-                className="cursor-pointer bg-package border border-[#FC0] w-[93px] h-[32px]  rounded-2xl px-2.5 py-[5.25px] bg-[rgba(255,204,0,0.16)] min-w-[92px] flex items-center"
+              <Link
+                to="/search"
+                className="hidden xl:flex cursor-pointer bg-package border border-[#FC0] h-[32px] rounded-2xl px-2.5 py-[5.25px] bg-[rgba(255,204,0,0.16)] items-center"
               >
-                <img
-                  src="https://waka.vn/svgs/icon-vip.svg"
-                  alt="icon-vip"
-                  className="h-4 w-4"
-                />
+                <i className="fa-solid fa-book-open text-yellow-500 text-sm" aria-hidden="true" />
                 <span className="text-[13px] font-bold text-nowrap text-yellow-500 pl-2">
-                  Gói VIP
+                  Sách miễn phí
                 </span>
-              </a>
-              <div className="relative group cursor-pointer">
+              </Link>
+              <div className="hidden lg:block relative group cursor-pointer">
                 <div className="absolute w-[14px] h-[14px] z-20 -right-2 -top-0.5 bg-red-500  text-[10px] font-bold flex text-white justify-center items-center rounded-full ">
                   2
                 </div>
@@ -207,7 +166,7 @@ export default function Header() {
                 {!isLogin ? (
                   <>
                     <a
-                      className="bg-white-overlay text-white border-[2px] border-white-overlay py-2 font-bold px-4 cursor-pointer rounded-full text-white-default text-16-16 button-secondary whitespace-nowrap py-2"
+                      className="hidden sm:block bg-white-overlay text-white border-[2px] border-white-overlay py-2 font-bold px-4 cursor-pointer rounded-full text-white-default text-16-16 button-secondary whitespace-nowrap"
                       onClick={() => {
                         setModalStatus("");
                         setShowModal(true);

@@ -2,3 +2,9 @@
 node_modules
 build
 coverage
+src/assets/fontawesome-pro-6.5.1-web/js
+src/assets/fontawesome-pro-6.5.1-web/svgs
+src/assets/fontawesome-pro-6.5.1-web/sprites
+src/assets/fontawesome-pro-6.5.1-web/metadata
+src/assets/fontawesome-pro-6.5.1-web/less
+src/assets/fontawesome-pro-6.5.1-web/scss

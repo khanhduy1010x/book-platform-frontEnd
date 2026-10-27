@@ -16,6 +16,7 @@ export default function Footer() {
             <Link to="/" className="hover:text-white">Thư viện</Link>
             <Link to="/search" className="hover:text-white">Tìm sách</Link>
             <a href="https://www.gutenberg.org/" target="_blank" rel="noreferrer" className="hover:text-white">Nguồn sách: Project Gutenberg</a>
+            <a href="https://standardebooks.org/" target="_blank" rel="noreferrer" className="hover:text-white">Standard Ebooks</a>
           </nav>
         </div>
       </div>

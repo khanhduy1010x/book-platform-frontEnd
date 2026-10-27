@@ -1,4 +1,5 @@
 import BookSlider from "./BookSlider";
+import { books } from "../../data/books";
 
 export default function BookHome() {
   return (
@@ -8,7 +9,7 @@ export default function BookHome() {
           <h2 className="text-white text-[1.625rem] font-rubik font-bold">Sách điện tử miễn phí</h2>
           <p className="text-gray-400 mt-2">Tác phẩm kinh điển với tệp EPUB đọc trực tiếp trên trình duyệt.</p>
         </div>
-        <span className="text-primary text-sm whitespace-nowrap">5 cuốn sách</span>
+        <span className="text-primary text-sm whitespace-nowrap">{books.length} cuốn sách</span>
       </div>
       <BookSlider />
     </section>

@@ -34,7 +34,7 @@ export default function DetailBook() {
               <Link to={"/read/" + book.id} className="inline-flex items-center justify-center gap-3 bg-primary text-black rounded-full px-7 py-4 font-bold hover:bg-white transition-colors">
                 <i className="fa-solid fa-book-open-reader" />{progress ? "Đọc tiếp" : "Đọc sách"}
               </Link>
-              <a href={book.source} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-primary underline underline-offset-4">Xem nguồn Project Gutenberg ↗</a>
+              <a href={book.source} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-primary underline underline-offset-4">Xem nguồn {book.source.includes('standardebooks.org') ? 'Standard Ebooks' : 'Project Gutenberg'} ↗</a>
             </div>
             <p className="text-gray-500 text-sm mt-5">Tiến độ và cài đặt đọc được lưu trên trình duyệt này.</p>
           </div>

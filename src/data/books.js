@@ -1,4 +1,6 @@
-export const books = [
+import additionalBooks from './additionalBooks.json';
+
+const coreBooks = [
   {
     id: 'pride-and-prejudice',
     title: 'Pride and Prejudice',
@@ -75,6 +77,8 @@ export const books = [
     monogram: 'L',
   },
 ];
+
+export const books = [...coreBooks, ...additionalBooks];
 
 export const categories = ['Tất cả', ...new Set(books.map((book) => book.category))];
 
